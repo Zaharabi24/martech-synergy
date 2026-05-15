@@ -1,118 +1,100 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { format } from "date-fns";
 import {
-  MessageCircle, Target, Star, TrendingUp, AlertTriangle,
-  Calendar, Filter, Info, Download, Bookmark, MoreVertical, ArrowUpRight, ArrowDownRight,
-  Globe, Twitter, Instagram, Youtube, Newspaper, MessagesSquare,
+  MessageCircle, AlertTriangle, Star, TrendingUp, Target,
+  CalendarIcon, Download, Plus, Search, Link2, Info,
+  Facebook, Instagram, Youtube, Linkedin, Twitter, Bookmark, MoreVertical,
+  ArrowUpRight, ArrowDownRight,
 } from "lucide-react";
-import {
-  ResponsiveContainer, ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Cell,
-  RadialBarChart, RadialBar, PolarAngleAxis,
-} from "recharts";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import type { DateRange } from "react-day-picker";
 
 export const Route = createFileRoute("/dashboard/reputation")({
   component: Reputation,
   head: () => ({ meta: [{ title: "Brand Reputation Radar — BrandSync AI" }] }),
 });
 
-/* -------- data -------- */
-const HOURS = ["12 AM","1","2","3 AM","4","5","6 AM","7","8","9 AM","10","11","12 PM","1","2","3 PM","4","5","6 PM","7","8","9 PM","10","11"];
-const trend = HOURS.map((h, i) => {
-  const score = Math.round(50 + Math.sin(i / 2.4) * 14 + (i === 9 ? 10 : 0) + Math.random() * 6);
-  const volume = Math.round(120 + Math.sin(i / 1.8) * 80 + (i === 9 ? 130 : 0) + Math.random() * 40);
-  return { hour: h, score, volume };
-});
+/* ---------- channel meta ---------- */
+const CHANNEL_META = {
+  Facebook:  { icon: Facebook,  color: "#3b82f6" },
+  Instagram: { icon: Instagram, color: "#ec4899" },
+  YouTube:   { icon: Youtube,   color: "#ef4444" },
+  LinkedIn:  { icon: Linkedin,  color: "#0ea5e9" },
+  Twitter:   { icon: Twitter,   color: "#60a5fa" },
+} as const;
+type ChannelName = keyof typeof CHANNEL_META;
 
-const tags = [
-  { tag: "Product Feedback",    mentions: 643, pct: 30, color: "#a78bfa", icon: "💬" },
-  { tag: "Industry Impact",     mentions: 512, pct: 24, color: "#60a5fa", icon: "🏆" },
-  { tag: "Customer Experience", mentions: 398, pct: 19, color: "#fbbf24", icon: "👤" },
-  { tag: "Performance",         mentions: 287, pct: 13, color: "#22d3ee", icon: "📈" },
-  { tag: "Partnerships",        mentions: 176, pct: 8,  color: "#34d399", icon: "🤝" },
-  { tag: "Other",               mentions: 132, pct: 6,  color: "#94a3b8", icon: "•••" },
+/* ---------- mock data ---------- */
+const channelMatrix: {
+  name: ChannelName;
+  totalMentions: number;
+  mentionVolume: number;
+  engagementRate: number;
+  audienceGrowth: number;
+  interactionRate: number;
+}[] = [
+  { name: "Facebook",  totalMentions: 842, mentionVolume: 1240, engagementRate: 6.4, audienceGrowth: 4.2, interactionRate: 3.1 },
+  { name: "Instagram", totalMentions: 614, mentionVolume:  980, engagementRate: 8.7, audienceGrowth: 7.5, interactionRate: 5.6 },
+  { name: "YouTube",   totalMentions: 232, mentionVolume:  410, engagementRate: 5.2, audienceGrowth: 2.8, interactionRate: 2.4 },
+  { name: "LinkedIn",  totalMentions: 318, mentionVolume:  520, engagementRate: 4.1, audienceGrowth: 3.6, interactionRate: 2.0 },
+  { name: "Twitter",   totalMentions: 542, mentionVolume:  870, engagementRate: 3.8, audienceGrowth: 1.9, interactionRate: 4.2 },
 ];
 
-const distribution = [
-  { band: "0-20",   pct: 8,  color: "#f43f5e" },
-  { band: "21-40",  pct: 17, color: "#fb923c" },
-  { band: "41-60",  pct: 28, color: "#facc15" },
-  { band: "61-80",  pct: 31, color: "#84cc16" },
-  { band: "81-100", pct: 16, color: "#22c55e" },
-];
-
-/* Channel breakdown — fills the gap below Score Trend */
-const channels = [
-  { name: "Twitter / X",  icon: Twitter,        mentions: 842, sentiment: 68, share: 39, color: "#60a5fa" },
-  { name: "Instagram",    icon: Instagram,      mentions: 514, sentiment: 74, share: 24, color: "#f472b6" },
-  { name: "News / Web",   icon: Newspaper,      mentions: 318, sentiment: 61, share: 15, color: "#a78bfa" },
-  { name: "YouTube",      icon: Youtube,        mentions: 232, sentiment: 70, share: 11, color: "#f87171" },
-  { name: "Reddit",       icon: MessagesSquare, mentions: 142, sentiment: 48, share: 7,  color: "#fb923c" },
-  { name: "Other Web",    icon: Globe,          mentions: 100, sentiment: 55, share: 4,  color: "#22d3ee" },
-];
-
-const sentimentSplit = [
-  { name: "Positive", value: 58, fill: "#22c55e" },
-  { name: "Neutral",  value: 27, fill: "#94a3b8" },
-  { name: "Negative", value: 15, fill: "#f43f5e" },
-];
-
+type Risk = "high" | "impact" | "rising" | "normal";
 type Mention = {
-  user: string; initials: string; time: string; text: string;
-  score: number | null; tone: "neg" | "warn" | "ok" | "good"; tags: { label: string; color: string }[];
+  id: string;
+  user: string;
+  initials: string;
+  channel: ChannelName;
+  text: string;
+  score: number;
+  tone: "neg" | "warn" | "ok" | "good";
+  risk: Risk;
+  updatedMinAgo: number;
 };
+
 const FEED: Mention[] = [
-  { user: "@upsetcustomer", initials: "UC", time: "33m",
-    text: "Support never replied to my refund request. Disappointed.",
-    score: 22, tone: "neg",
-    tags: [{ label: "Customer Experience", color: "bg-orange-500/15 text-orange-300" }, { label: "Complaint", color: "bg-rose-500/15 text-rose-300" }] },
-  { user: "@adopslead", initials: "AD", time: "9m",
-    text: "Cut our paid spend by 38% in 6 weeks switching to BrandSync auto-pilot.",
-    score: 75, tone: "warn",
-    tags: [{ label: "Product Feedback", color: "bg-violet-500/15 text-violet-300" }, { label: "Performance", color: "bg-cyan-500/15 text-cyan-300" }] },
-  { user: "@trendlens", initials: "TS", time: "2m",
-    text: "Honestly @brandsync is the cleanest MarTech UI I've used in years. ✨",
-    score: 82, tone: "good",
-    tags: [{ label: "Industry Impact", color: "bg-blue-500/15 text-blue-300" }, { label: "Praise", color: "bg-emerald-500/15 text-emerald-300" }] },
-  { user: "@growthnerd", initials: "GN", time: "21m",
-    text: "Reporting feels okay, wish exports were faster.",
-    score: 46, tone: "ok",
-    tags: [{ label: "Product Feedback", color: "bg-violet-500/15 text-violet-300" }, { label: "Improvement", color: "bg-amber-500/15 text-amber-300" }] },
-  { user: "@cmoworld", initials: "CM", time: "44m",
-    text: "BrandSync's predictive simulation literally saved a $40k campaign.",
-    score: 88, tone: "good",
-    tags: [{ label: "Industry Impact", color: "bg-blue-500/15 text-blue-300" }, { label: "Success Story", color: "bg-emerald-500/15 text-emerald-300" }] },
+  { id: "m1", user: "@upsetcustomer", initials: "UC", channel: "Twitter",   text: "Support never replied to my refund request. Disappointed. #brandfail",        score: 22, tone: "neg",  risk: "high",    updatedMinAgo: 12 },
+  { id: "m2", user: "Crisis Watch",   initials: "CW", channel: "Facebook",  text: "Negative thread gaining traction — 240+ angry comments in the last hour.",     score: 18, tone: "neg",  risk: "high",    updatedMinAgo: 7  },
+  { id: "m3", user: "@boycottnews",   initials: "BN", channel: "Instagram", text: "Reel calling out the brand passed 50k views, mostly negative sentiment.",      score: 26, tone: "neg",  risk: "high",    updatedMinAgo: 22 },
+  { id: "m4", user: "@trendlens",     initials: "TL", channel: "Twitter",   text: "Honestly @brandsync is the cleanest MarTech UI I've used in years. ✨",        score: 82, tone: "good", risk: "impact",  updatedMinAgo: 2  },
+  { id: "m5", user: "TechCrunch",     initials: "TC", channel: "LinkedIn",  text: "Verified outlet shared a feature story — strong reach across the network.",   score: 78, tone: "good", risk: "impact",  updatedMinAgo: 35 },
+  { id: "m6", user: "Creator Hub",    initials: "CH", channel: "YouTube",   text: "Review video crossed 120k views with mostly positive comments.",               score: 74, tone: "good", risk: "impact",  updatedMinAgo: 48 },
+  { id: "m7", user: "@growthnerd",    initials: "GN", channel: "Twitter",   text: "Hashtag #BrandSyncWorks just jumped 4× in the last hour — keep watching.",     score: 64, tone: "warn", risk: "rising",  updatedMinAgo: 5  },
+  { id: "m8", user: "@adopslead",     initials: "AD", channel: "LinkedIn",  text: "Cut paid spend by 38% in 6 weeks switching to BrandSync auto-pilot.",          score: 71, tone: "warn", risk: "rising",  updatedMinAgo: 18 },
+  { id: "m9", user: "@cmoworld",      initials: "CM", channel: "Instagram", text: "BrandSync's predictive simulation literally saved a $40k campaign.",            score: 86, tone: "good", risk: "normal",  updatedMinAgo: 44 },
+  { id: "m10", user: "@happyuser",    initials: "HU", channel: "Facebook",  text: "Onboarding was smooth. Loving the new dashboard.",                              score: 70, tone: "good", risk: "normal",  updatedMinAgo: 55 },
 ];
 
-/* -------- ui atoms -------- */
+/* ---------- atoms ---------- */
 function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={cn(
-      "rounded-2xl border border-border bg-card backdrop-blur-md shadow-[0_1px_2px_rgba(0,0,0,0.25)]",
-      className,
-    )}>
+    <div className={cn("rounded-2xl border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.25)]", className)}>
       {children}
     </div>
   );
 }
 
-function KPI({ label, value, suffix, delta, deltaTone, icon, iconBg, iconColor }: {
-  label: string; value: string; suffix?: string; delta?: string; deltaTone?: "up" | "down";
-  icon: React.ReactNode; iconBg: string; iconColor: string;
+function KPI({ label, value, delta, deltaTone, icon, iconBg, iconColor, accent }: {
+  label: string; value: string; delta?: string; deltaTone?: "up" | "down";
+  icon: React.ReactNode; iconBg: string; iconColor: string; accent?: boolean;
 }) {
   return (
-    <Card className="p-5">
+    <Card className={cn("p-5", accent && "ring-1 ring-rose-400/30")}>
       <div className="flex items-start justify-between">
         <div>
-          <div className="text-xs text-muted-foreground font-medium">{label}</div>
-          <div className="mt-2 flex items-baseline gap-1">
-            <span className="text-3xl font-semibold tracking-tight text-foreground">{value}</span>
-            {suffix && <span className="text-sm text-muted-foreground">{suffix}</span>}
-          </div>
+          <div className="text-xs font-medium text-muted-foreground">{label}</div>
+          <div className="mt-2 text-3xl font-semibold tracking-tight text-foreground">{value}</div>
         </div>
-        <div className={cn("h-10 w-10 rounded-xl grid place-items-center", iconBg, iconColor)}>{icon}</div>
+        <div className={cn("grid h-10 w-10 place-items-center rounded-xl", iconBg, iconColor)}>{icon}</div>
       </div>
       {delta && (
         <div className="mt-3 flex items-center gap-1.5 text-xs">
@@ -120,314 +102,401 @@ function KPI({ label, value, suffix, delta, deltaTone, icon, iconBg, iconColor }
             ? <ArrowDownRight className="h-3.5 w-3.5 text-rose-400" />
             : <ArrowUpRight className="h-3.5 w-3.5 text-emerald-400" />}
           <span className={cn("font-semibold", deltaTone === "down" ? "text-rose-400" : "text-emerald-400")}>{delta}</span>
-          <span className="text-muted-foreground">vs. previous 24h</span>
+          <span className="text-muted-foreground">vs. previous period</span>
         </div>
       )}
     </Card>
   );
 }
 
-function Pill({ active, children, onClick, danger }: { active?: boolean; danger?: boolean; children: React.ReactNode; onClick?: () => void }) {
+function ChannelChip({ channel }: { channel: ChannelName }) {
+  const meta = CHANNEL_META[channel];
+  const Icon = meta.icon;
   return (
-    <button onClick={onClick}
-      className={cn(
-        "rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
-        active
-          ? danger
-            ? "border-rose-400/30 bg-rose-500/15 text-rose-300"
-            : "border-violet-400/30 bg-violet-500/15 text-violet-200"
-          : "border-border bg-white/5 text-muted-foreground hover:bg-white/10",
-      )}>
-      {children}
-    </button>
+    <span
+      className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium"
+      style={{ background: `${meta.color}1f`, color: meta.color }}
+    >
+      <Icon className="h-3 w-3" />
+      {channel}
+    </span>
   );
 }
 
-function ScoreBadge({ score, tone }: { score: number | null; tone: Mention["tone"] }) {
-  const color =
-    tone === "neg" ? "text-rose-400" :
-    tone === "warn" ? "text-orange-300" :
-    tone === "ok" ? "text-amber-300" : "text-emerald-400";
-  return (
-    <div className="flex items-center gap-1">
-      <span className={cn("text-2xl font-semibold tabular-nums", color)}>{score ?? "—"}</span>
-      {score !== null && (tone === "neg"
-        ? <ArrowDownRight className={cn("h-4 w-4", color)} />
-        : <ArrowUpRight className={cn("h-4 w-4", color)} />)}
-    </div>
-  );
-}
+/* ---------- date filter ---------- */
+type DateMode = "single" | "range" | "multiple";
 
-const GRID = "rgba(148,163,184,0.12)";
-const AXIS = "rgba(148,163,184,0.6)";
-const TOOLTIP_STYLE = {
-  borderRadius: 12,
-  border: "1px solid rgba(148,163,184,0.2)",
-  background: "rgba(15,18,30,0.95)",
-  color: "#e2e8f0",
-  boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
-};
-
-/* -------- page -------- */
-function Reputation() {
-  const [chartMode, setChartMode] = useState<"score" | "volume">("score");
-  const [feedFilter, setFeedFilter] = useState<"attention" | "high" | "rising" | "all">("attention");
+function DateFilter({
+  mode, setMode, single, setSingle, range, setRange, multi, setMulti,
+}: {
+  mode: DateMode; setMode: (m: DateMode) => void;
+  single?: Date; setSingle: (d?: Date) => void;
+  range?: DateRange; setRange: (r?: DateRange) => void;
+  multi: Date[]; setMulti: (d: Date[]) => void;
+}) {
+  const label = useMemo(() => {
+    if (mode === "single") return single ? format(single, "MMM d, yyyy") : "Pick a date";
+    if (mode === "range")
+      return range?.from
+        ? range.to
+          ? `${format(range.from, "MMM d")} – ${format(range.to, "MMM d, yyyy")}`
+          : format(range.from, "MMM d, yyyy")
+        : "Pick a range";
+    return multi.length ? `${multi.length} date${multi.length > 1 ? "s" : ""} selected` : "Pick dates";
+  }, [mode, single, range, multi]);
 
   return (
-    <div className="-m-6 p-6 min-h-[calc(100vh-4rem)]">
-      {/* header */}
-      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">Brand Reputation Radar</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Real-time mentions, AI scoring and actionable insights.</p>
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className="inline-flex items-center gap-2 rounded-lg border border-border bg-white/5 px-3 py-2 text-sm text-foreground/90 hover:bg-white/10">
+          <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+          {label}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-auto p-0">
+        <div className="flex gap-1 border-b border-border p-2">
+          {(["single", "range", "multiple"] as DateMode[]).map((m) => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              className={cn(
+                "rounded-md px-2.5 py-1 text-xs font-medium capitalize",
+                mode === m ? "bg-violet-500/20 text-violet-300" : "text-muted-foreground hover:bg-white/5",
+              )}
+            >
+              {m === "single" ? "Specific date" : m === "range" ? "Date range" : "Multiple dates"}
+            </button>
+          ))}
         </div>
-        <div className="flex items-center gap-2">
-          <button className="inline-flex items-center gap-2 rounded-lg border border-border bg-white/5 px-3 py-2 text-sm text-foreground/80 hover:bg-white/10">
-            <Calendar className="h-4 w-4 text-muted-foreground" /> Last 24 Hours
-          </button>
-          <button className="inline-flex items-center gap-2 rounded-lg border border-border bg-white/5 px-3 py-2 text-sm text-foreground/80 hover:bg-white/10">
-            <Filter className="h-4 w-4 text-muted-foreground" /> Filters
-          </button>
+        {mode === "single" && (
+          <Calendar mode="single" selected={single} onSelect={setSingle} initialFocus className="pointer-events-auto p-3" />
+        )}
+        {mode === "range" && (
+          <Calendar mode="range" selected={range} onSelect={setRange} numberOfMonths={2} initialFocus className="pointer-events-auto p-3" />
+        )}
+        {mode === "multiple" && (
+          <Calendar mode="multiple" selected={multi} onSelect={(d) => setMulti(d ?? [])} initialFocus className="pointer-events-auto p-3" />
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/* ---------- Add Your Channel ---------- */
+function AddYourChannel() {
+  const [search, setSearch] = useState("");
+  const [link, setLink] = useState("");
+  const [connected, setConnected] = useState<ChannelName[]>(["Facebook", "Instagram"]);
+
+  const toggle = (c: ChannelName) => {
+    if (connected.includes(c)) {
+      setConnected(connected.filter((x) => x !== c));
+      toast(`${c} disconnected`);
+    } else {
+      setConnected([...connected, c]);
+      toast.success(`${c} connected`);
+    }
+  };
+
+  return (
+    <Card className="mb-6 p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-base font-semibold text-foreground">Add Your Channel</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Connect accounts, paste a channel link, or search a brand to monitor it across one workspace.
+          </p>
+        </div>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button size="sm" className="gap-1.5">
+              <Plus className="h-4 w-4" /> Connect Account
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Connect a social account</DialogTitle></DialogHeader>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {(Object.keys(CHANNEL_META) as ChannelName[]).map((c) => {
+                const Icon = CHANNEL_META[c].icon;
+                const on = connected.includes(c);
+                return (
+                  <button
+                    key={c}
+                    onClick={() => toggle(c)}
+                    className={cn(
+                      "flex flex-col items-center gap-2 rounded-xl border border-border p-4 transition-colors",
+                      on ? "bg-emerald-500/10 border-emerald-400/30" : "hover:bg-white/5",
+                    )}
+                  >
+                    <Icon className="h-6 w-6" style={{ color: CHANNEL_META[c].color }} />
+                    <span className="text-sm font-medium text-foreground">{c}</span>
+                    <span className={cn("text-[10px]", on ? "text-emerald-400" : "text-muted-foreground")}>
+                      {on ? "Connected" : "Connect"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && search.trim()) {
+                toast.success(`Searching for "${search}"…`);
+                setSearch("");
+              }
+            }}
+            placeholder="Search your brand (e.g. Nike, Tesla)…"
+            className="pl-9"
+          />
+        </div>
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
+              placeholder="Paste channel link (facebook.com/yourbrand)…"
+              className="pl-9"
+            />
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (!link.trim()) return;
+              toast.success("Channel link added");
+              setLink("");
+            }}
+          >
+            Add
+          </Button>
         </div>
       </div>
 
-      {/* KPI row */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Connected</span>
+        {connected.length === 0 && <span className="text-xs text-muted-foreground">No accounts yet.</span>}
+        {connected.map((c) => <ChannelChip key={c} channel={c} />)}
+      </div>
+    </Card>
+  );
+}
+
+/* ---------- page ---------- */
+function Reputation() {
+  const [feedFilter, setFeedFilter] = useState<"all" | "high" | "impact" | "rising">("all");
+
+  // date filter state (UI only — would drive data fetch in production)
+  const [mode, setMode] = useState<DateMode>("single");
+  const [single, setSingle] = useState<Date | undefined>(new Date());
+  const [range, setRange] = useState<DateRange | undefined>();
+  const [multi, setMulti] = useState<Date[]>([]);
+
+  const highRiskCount = FEED.filter((m) => m.risk === "high").length;
+  const impactCount   = FEED.filter((m) => m.risk === "impact").length;
+  const risingCount   = FEED.filter((m) => m.risk === "rising").length;
+
+  const visibleFeed = useMemo(() => {
+    if (feedFilter === "all") {
+      const highRisk = FEED.filter((m) => m.risk === "high")
+        .sort((a, b) => a.updatedMinAgo - b.updatedMinAgo)
+        .slice(0, 3);
+      const rest = FEED
+        .filter((m) => !highRisk.includes(m))
+        .sort((a, b) => a.updatedMinAgo - b.updatedMinAgo);
+      return [...highRisk, ...rest];
+    }
+    return FEED
+      .filter((m) => (feedFilter === "high" ? m.risk === "high" : feedFilter === "impact" ? m.risk === "impact" : m.risk === "rising"))
+      .sort((a, b) => a.updatedMinAgo - b.updatedMinAgo);
+  }, [feedFilter]);
+
+  return (
+    <div className="-m-6 min-h-[calc(100vh-4rem)] p-6">
+      {/* header */}
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground">Brand Reputation Radar</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Mentions, AI scoring and actionable insights across every connected channel.</p>
+        </div>
+        <DateFilter
+          mode={mode} setMode={setMode}
+          single={single} setSingle={setSingle}
+          range={range} setRange={setRange}
+          multi={multi} setMulti={setMulti}
+        />
+      </div>
+
+      {/* Add Your Channel — primary element */}
+      <AddYourChannel />
+
+      {/* KPI row — Needs Attention right after Total Mentions */}
+      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
         <KPI label="Total Mentions" value="2,148" delta="18%" deltaTone="up"
           icon={<MessageCircle className="h-5 w-5" />} iconBg="bg-violet-500/15" iconColor="text-violet-300" />
-        <KPI label="Average AI Score" value="63" suffix="/100" delta="6 pts" deltaTone="up"
-          icon={<Target className="h-5 w-5" />} iconBg="bg-emerald-500/15" iconColor="text-emerald-300" />
+        <KPI accent label="Needs Attention (High Risk)" value="412" delta="12%" deltaTone="down"
+          icon={<AlertTriangle className="h-5 w-5" />} iconBg="bg-rose-500/15" iconColor="text-rose-300" />
         <KPI label="High Impact Mentions" value="321" delta="23%" deltaTone="up"
           icon={<Star className="h-5 w-5" />} iconBg="bg-amber-500/15" iconColor="text-amber-300" />
         <KPI label="Rising Mentions" value="128" delta="29%" deltaTone="up"
           icon={<TrendingUp className="h-5 w-5" />} iconBg="bg-indigo-500/15" iconColor="text-indigo-300" />
-        <KPI label="Needs Attention" value="412" delta="12%" deltaTone="down"
-          icon={<AlertTriangle className="h-5 w-5" />} iconBg="bg-rose-500/15" iconColor="text-rose-300" />
+        <KPI label="Average AI Score" value="63" delta="6 pts" deltaTone="up"
+          icon={<Target className="h-5 w-5" />} iconBg="bg-emerald-500/15" iconColor="text-emerald-300" />
       </div>
 
-      {/* Score Trend (+ Channel Mix below) | Mention Feed */}
-      <div className="grid grid-cols-1 xl:grid-cols-[1.6fr_1fr] gap-6 mb-6">
-        <div className="flex flex-col gap-6">
-          <Card className="p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-semibold text-foreground">Score Trend</h3>
-                <Info className="h-3.5 w-3.5 text-muted-foreground" />
-              </div>
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-4 bg-violet-400 rounded" /> Average Score</span>
-                <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-white/20" /> Volume</span>
-              </div>
+      {/* Channel Matrix + Mention Feed */}
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.4fr_1fr]">
+        <Card className="p-5">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-semibold text-foreground">Channel Performance Matrix</h3>
+              <Info className="h-3.5 w-3.5 text-muted-foreground" />
             </div>
-            <div className="flex items-center gap-2 mb-3">
-              <Pill active={chartMode === "score"} onClick={() => setChartMode("score")}>AI Score</Pill>
-              <Pill active={chartMode === "volume"} onClick={() => setChartMode("volume")}>Volume</Pill>
-              <button className="ml-1 inline-flex items-center gap-1 rounded-lg border border-border bg-white/5 px-3 py-1.5 text-xs text-muted-foreground">
-                By: Hour <span className="text-muted-foreground/70">▾</span>
-              </button>
-            </div>
-            <div className="h-[280px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={trend} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                  <CartesianGrid stroke={GRID} vertical={false} />
-                  <XAxis dataKey="hour" stroke={AXIS} fontSize={11} interval={2} tickLine={false} axisLine={false} />
-                  <YAxis yAxisId="left" stroke={AXIS} fontSize={11} tickLine={false} axisLine={false} domain={[0, 100]} />
-                  <YAxis yAxisId="right" orientation="right" stroke={AXIS} fontSize={11} tickLine={false} axisLine={false} domain={[0, 400]} />
-                  <Tooltip contentStyle={TOOLTIP_STYLE} labelStyle={{ color: "#e2e8f0", fontWeight: 600 }} />
-                  <Bar yAxisId="right" dataKey="volume" fill="rgba(148,163,184,0.25)" radius={[3,3,0,0]} barSize={14} />
-                  <Line yAxisId="left" type="monotone" dataKey="score" stroke="#a78bfa" strokeWidth={2.5} dot={{ r: 3, fill: "#a78bfa" }} activeDot={{ r: 5 }} />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-3 flex items-center gap-2 rounded-lg bg-violet-500/10 border border-violet-400/20 px-3 py-2 text-xs text-violet-200">
-              <Info className="h-3.5 w-3.5" />
-              Your average score improved 6 points in the last 24 hours.
-            </div>
-          </Card>
+            <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Live · selected period</span>
+          </div>
 
-          {/* Fills the previous gap: Channel Mix + Sentiment Split */}
-          <Card className="p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-semibold text-foreground">Channel Performance Matrix</h3>
-                <Info className="h-3.5 w-3.5 text-muted-foreground" />
-              </div>
-              <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Live · last 24h</span>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-6">
-              {/* channel rows */}
-              <div className="space-y-3">
-                <div className="grid grid-cols-[1fr_auto_140px_auto] gap-x-4 text-[10px] uppercase tracking-wide text-muted-foreground">
-                  <span>Channel</span>
-                  <span className="text-right">Mentions</span>
-                  <span>Sentiment</span>
-                  <span className="text-right">Share</span>
-                </div>
-                {channels.map((c) => {
-                  const Icon = c.icon;
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] text-sm">
+              <thead>
+                <tr className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  <th className="pb-3 text-left font-medium">Channel</th>
+                  <th className="pb-3 text-right font-medium">Total Mentions</th>
+                  <th className="pb-3 text-right font-medium">Mention Volume</th>
+                  <th className="pb-3 text-right font-medium">Engagement</th>
+                  <th className="pb-3 text-right font-medium">Audience Growth</th>
+                  <th className="pb-3 text-right font-medium">Interaction</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {channelMatrix.map((c) => {
+                  const meta = CHANNEL_META[c.name];
+                  const Icon = meta.icon;
                   return (
-                    <div key={c.name} className="grid grid-cols-[1fr_auto_140px_auto] items-center gap-x-4">
-                      <div className="flex items-center gap-2.5 text-sm text-foreground/90 min-w-0">
-                        <span
-                          className="h-7 w-7 shrink-0 rounded-lg grid place-items-center"
-                          style={{ background: `${c.color}22`, color: c.color }}
-                        >
-                          <Icon className="h-3.5 w-3.5" />
-                        </span>
-                        <span className="truncate">{c.name}</span>
-                      </div>
-                      <div className="text-sm text-foreground/80 tabular-nums text-right">{c.mentions.toLocaleString()}</div>
-                      <div className="flex items-center gap-2">
-                        <div className="h-1.5 flex-1 rounded-full bg-white/5 overflow-hidden">
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width: `${c.sentiment}%`,
-                              background: `linear-gradient(90deg, ${c.color}, ${c.color}cc)`,
-                            }}
-                          />
+                    <tr key={c.name} className="text-foreground/90">
+                      <td className="py-3">
+                        <div className="flex items-center gap-2.5">
+                          <span
+                            className="grid h-7 w-7 shrink-0 place-items-center rounded-lg"
+                            style={{ background: `${meta.color}22`, color: meta.color }}
+                          >
+                            <Icon className="h-3.5 w-3.5" />
+                          </span>
+                          <span className="font-medium">{c.name}</span>
                         </div>
-                        <span className="text-[11px] tabular-nums text-muted-foreground w-7 text-right">{c.sentiment}</span>
-                      </div>
-                      <div className="text-sm text-muted-foreground tabular-nums text-right">{c.share}%</div>
-                    </div>
+                      </td>
+                      <td className="py-3 text-right tabular-nums">{c.totalMentions.toLocaleString()}</td>
+                      <td className="py-3 text-right tabular-nums">{c.mentionVolume.toLocaleString()}</td>
+                      <td className="py-3 text-right tabular-nums">{c.engagementRate}%</td>
+                      <td className="py-3 text-right tabular-nums text-emerald-400">+{c.audienceGrowth}%</td>
+                      <td className="py-3 text-right tabular-nums">{c.interactionRate}%</td>
+                    </tr>
                   );
                 })}
-              </div>
+              </tbody>
+            </table>
+          </div>
+        </Card>
 
-              {/* sentiment radial */}
-              <div className="rounded-xl border border-border bg-white/[0.03] p-3 flex flex-col">
-                <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Sentiment Split</div>
-                <div className="flex-1 min-h-[160px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RadialBarChart
-                      innerRadius="40%"
-                      outerRadius="100%"
-                      barSize={10}
-                      data={sentimentSplit}
-                      startAngle={90}
-                      endAngle={-270}
-                    >
-                      <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-                      <RadialBar background={{ fill: "rgba(148,163,184,0.08)" }} dataKey="value" cornerRadius={6} />
-                      <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => `${v}%`} />
-                    </RadialBarChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-2 grid grid-cols-3 gap-1 text-center">
-                  {sentimentSplit.map((s) => (
-                    <div key={s.name}>
-                      <div className="flex items-center justify-center gap-1">
-                        <span className="h-2 w-2 rounded-sm" style={{ background: s.fill }} />
-                        <span className="text-[10px] text-muted-foreground">{s.name}</span>
-                      </div>
-                      <div className="text-sm font-semibold text-foreground tabular-nums">{s.value}%</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        <Card className="p-5 flex flex-col">
-          <div className="flex items-center gap-2 mb-3">
+        {/* Mention Feed */}
+        <Card className="flex flex-col p-5">
+          <div className="mb-3 flex items-center gap-2">
             <h3 className="text-base font-semibold text-foreground">Mention Feed</h3>
             <Info className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            <Pill danger active={feedFilter === "attention"} onClick={() => setFeedFilter("attention")}>Needs Attention</Pill>
-            <Pill active={feedFilter === "high"} onClick={() => setFeedFilter("high")}>High Impact</Pill>
-            <Pill active={feedFilter === "rising"} onClick={() => setFeedFilter("rising")}>Rising</Pill>
-            <Pill active={feedFilter === "all"} onClick={() => setFeedFilter("all")}>All Mentions</Pill>
-          </div>
-          <div className="space-y-3">
-            {FEED.map((m, i) => (
-              <div key={i} className="flex gap-3 rounded-xl border border-border p-3 hover:bg-white/[0.04] transition-colors">
-                <div className="h-9 w-9 shrink-0 rounded-full bg-gradient-to-br from-violet-400 to-indigo-500 grid place-items-center text-[11px] font-semibold text-white">{m.initials}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-foreground truncate">{m.user}</span>
-                    <span className="text-[11px] text-muted-foreground">· {m.time}</span>
-                  </div>
-                  <p className="mt-0.5 text-sm text-foreground/75 leading-snug">{m.text}</p>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {m.tags.map(t => (
-                      <span key={t.label} className={cn("rounded-md px-2 py-0.5 text-[10px] font-medium", t.color)}>{t.label}</span>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex flex-col items-end gap-1">
-                  <span className="text-[10px] text-muted-foreground">Score</span>
-                  <ScoreBadge score={m.score} tone={m.tone} />
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <button className="hover:text-foreground"><Bookmark className="h-3.5 w-3.5" /></button>
-                    <button className="hover:text-foreground"><MoreVertical className="h-3.5 w-3.5" /></button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <button className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-violet-300 hover:text-violet-200">
-            View all mentions →
-          </button>
-        </Card>
-      </div>
 
-      {/* Tags + Distribution */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <Card className="p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <h3 className="text-base font-semibold text-foreground">Mentions by Tag</h3>
-            <Info className="h-3.5 w-3.5 text-muted-foreground" />
+          <div className="mb-4 flex flex-wrap items-center gap-1.5">
+            {[
+              { key: "all",    label: "All Mentions",          count: FEED.length,    danger: false },
+              { key: "high",   label: "Needs Attention",       count: highRiskCount,  danger: true  },
+              { key: "impact", label: "High Impact",           count: impactCount,    danger: false },
+              { key: "rising", label: "Rising Mentions",       count: risingCount,    danger: false },
+            ].map((t) => {
+              const active = feedFilter === t.key;
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => setFeedFilter(t.key as typeof feedFilter)}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors",
+                    active
+                      ? t.danger
+                        ? "border-rose-400/30 bg-rose-500/15 text-rose-300"
+                        : "border-violet-400/30 bg-violet-500/15 text-violet-200"
+                      : "border-border bg-white/5 text-muted-foreground hover:bg-white/10",
+                  )}
+                >
+                  {t.label}
+                  <Badge
+                    variant="secondary"
+                    className={cn(
+                      "h-4 min-w-4 rounded-full px-1 text-[10px]",
+                      t.danger ? "bg-rose-500/25 text-rose-200" : "bg-white/10 text-foreground/80",
+                    )}
+                  >
+                    {t.count}
+                  </Badge>
+                </button>
+              );
+            })}
           </div>
-          <div className="grid grid-cols-[1fr_auto_180px_auto] gap-x-4 text-[11px] uppercase tracking-wide text-muted-foreground mb-2">
-            <span>Tag</span><span className="text-right">Mentions</span><span /><span className="text-right">% of Total</span>
-          </div>
-          <div className="space-y-3">
-            {tags.map(t => (
-              <div key={t.tag} className="grid grid-cols-[1fr_auto_180px_auto] items-center gap-x-4">
-                <div className="flex items-center gap-2 text-sm text-foreground/85">
-                  <span className="text-base">{t.icon}</span> {t.tag}
-                </div>
-                <div className="text-sm text-foreground/85 tabular-nums text-right">{t.mentions}</div>
-                <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: `${t.pct * 3.2}%`, background: t.color }} />
-                </div>
-                <div className="text-sm text-muted-foreground tabular-nums text-right">{t.pct}%</div>
-              </div>
-            ))}
-          </div>
-          <button className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-violet-300 hover:text-violet-200">
-            View all tags →
-          </button>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <h3 className="text-base font-semibold text-foreground">Score Distribution</h3>
-            <Info className="h-3.5 w-3.5 text-muted-foreground" />
+          <div className="space-y-3">
+            {visibleFeed.map((m) => {
+              const pinned = feedFilter === "all" && m.risk === "high";
+              return (
+                <div
+                  key={m.id}
+                  className={cn(
+                    "flex gap-3 rounded-xl border p-3 transition-colors",
+                    pinned
+                      ? "border-rose-400/30 bg-rose-500/[0.06]"
+                      : "border-border hover:bg-white/[0.04]",
+                  )}
+                >
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-violet-400 to-indigo-500 text-[11px] font-semibold text-white">
+                    {m.initials}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span className="truncate text-sm font-semibold text-foreground">{m.user}</span>
+                      <ChannelChip channel={m.channel} />
+                      <span className="text-[11px] text-muted-foreground">· {m.updatedMinAgo}m ago</span>
+                      {pinned && (
+                        <span className="rounded-md bg-rose-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-rose-300">
+                          High Risk
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-sm leading-snug text-foreground/75">{m.text}</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="text-[10px] text-muted-foreground">Score</span>
+                    <span
+                      className={cn(
+                        "text-xl font-semibold tabular-nums",
+                        m.tone === "neg"  ? "text-rose-400" :
+                        m.tone === "warn" ? "text-amber-300" :
+                        m.tone === "ok"   ? "text-amber-300" : "text-emerald-400",
+                      )}
+                    >
+                      {m.score}
+                    </span>
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <button className="hover:text-foreground"><Bookmark className="h-3.5 w-3.5" /></button>
+                      <button className="hover:text-foreground"><MoreVertical className="h-3.5 w-3.5" /></button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          <div className="h-[240px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={distribution} margin={{ top: 24, right: 12, left: 0, bottom: 0 }}>
-                <CartesianGrid stroke={GRID} vertical={false} />
-                <XAxis dataKey="band" stroke={AXIS} fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis hide domain={[0, 40]} />
-                <Tooltip cursor={{ fill: "rgba(148,163,184,0.08)" }} contentStyle={TOOLTIP_STYLE} formatter={(v) => `${v}%`} />
-                <Bar dataKey="pct" radius={[8,8,0,0]} barSize={56}
-                  label={{ position: "top", fill: "#cbd5e1", fontSize: 12, fontWeight: 600, formatter: (v: number) => `${v}%` }}>
-                  {distribution.map((d, i) => <Cell key={i} fill={d.color} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="mt-3 h-1 rounded-full bg-gradient-to-r from-rose-500 via-amber-400 to-emerald-500" />
-          <div className="mt-1 flex justify-end text-[11px] text-muted-foreground">Higher Score →</div>
-          <button className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-violet-300 hover:text-violet-200">
-            View full analytics →
-          </button>
         </Card>
       </div>
 
@@ -436,7 +505,8 @@ function Reputation() {
         <Button
           onClick={() => toast.success("Report exported · check your downloads")}
           className="inline-flex items-center gap-2 rounded-lg border border-border bg-white/5 px-4 py-2 text-sm font-medium text-foreground/90 hover:bg-white/10"
-          variant="outline">
+          variant="outline"
+        >
           <Download className="h-4 w-4" /> Export Report
         </Button>
       </div>
