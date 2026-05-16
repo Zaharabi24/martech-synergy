@@ -427,11 +427,11 @@ function AddYourChannel() {
 function ReputationTrendChart() {
   const [period, setPeriod] = useState("Daily");
   return (
-    <Card className="p-5">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+    <Card className="p-4">
+      <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-base font-semibold text-foreground">Reputation Health Trend</h3>
+            <h3 className="text-sm font-semibold text-foreground">Reputation Health Trend</h3>
             <Info className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
@@ -455,7 +455,7 @@ function ReputationTrendChart() {
           ))}
         </div>
       </div>
-      <div className="h-[260px]">
+      <div className="h-[200px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={REPUTATION_TREND} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
             <defs>
@@ -485,20 +485,20 @@ function ReputationTrendChart() {
 /* ---------- Mention Source donut ---------- */
 function SourceDistribution() {
   return (
-    <Card className="p-5">
+    <Card className="p-4">
       <div className="mb-3 flex items-center gap-2">
-        <h3 className="text-base font-semibold text-foreground">Mention Source Distribution</h3>
+        <h3 className="text-sm font-semibold text-foreground">Mention Source Distribution</h3>
         <Info className="h-3.5 w-3.5 text-muted-foreground" />
       </div>
-      <div className="flex items-center gap-4">
-        <div className="relative h-[220px] w-[220px] shrink-0">
+      <div className="flex items-center gap-3">
+        <div className="relative h-[180px] w-[180px] shrink-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={SOURCE_DIST}
                 dataKey="value"
-                innerRadius={62}
-                outerRadius={92}
+                innerRadius={50}
+                outerRadius={76}
                 paddingAngle={2}
                 stroke="none"
                 onClick={(d: { name?: string }) => d?.name && toast(`Filtered by ${d.name}`)}
@@ -848,12 +848,12 @@ function Reputation() {
       </div>
 
       {/* Trend + Donut + Feed */}
-      <div className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[1fr_1fr_1.1fr]">
+      <div className="mb-6 grid grid-cols-1 gap-5 xl:grid-cols-[0.85fr_0.85fr_1.6fr]">
         <ReputationTrendChart />
         <SourceDistribution />
 
         {/* Mention Feed */}
-        <Card className="flex flex-col p-5 xl:row-span-2 xl:h-full xl:max-h-[980px]">
+        <Card className="flex flex-col p-5 xl:row-span-2 xl:h-full">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h3 className="text-base font-semibold text-foreground">Mention Feed</h3>
@@ -915,7 +915,7 @@ function Reputation() {
             </button>
           </div>
 
-          <div className="flex-1 min-h-0 max-h-[640px] xl:max-h-[860px] space-y-3 overflow-y-auto pr-1">
+          <div className="flex-1 min-h-0 max-h-[640px] xl:max-h-none space-y-3 overflow-y-auto pr-1">
             {visibleFeed.map((m) => (
               <MentionCard key={m.id} m={m} pinned={feedFilter === "all" && m.risk === "high"} />
             ))}
@@ -930,10 +930,10 @@ function Reputation() {
         </Card>
 
         {/* Channel Matrix — row 2, col 1 */}
-        <Card className="p-5">
-          <div className="mb-4 flex items-center justify-between">
+        <Card className="p-4">
+          <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-semibold text-foreground">Channel Performance Matrix</h3>
+              <h3 className="text-sm font-semibold text-foreground">Channel Performance Matrix</h3>
               <Info className="h-3.5 w-3.5 text-muted-foreground" />
             </div>
             <span className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wide text-emerald-400">
@@ -982,9 +982,9 @@ function Reputation() {
         </Card>
 
         {/* Heatmap */}
-        <Card className="p-5">
-          <div className="mb-4 flex items-center gap-2">
-            <h3 className="text-base font-semibold text-foreground">Reputation Risk Heatmap</h3>
+        <Card className="p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-foreground">Reputation Risk Heatmap</h3>
             <Info className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
           <div className="overflow-x-auto">
