@@ -848,12 +848,16 @@ function Reputation() {
       </div>
 
       {/* Trend + Donut + Feed */}
-      <div className="mb-6 grid grid-cols-1 gap-5 xl:grid-cols-[0.85fr_0.85fr_1.6fr]">
-        <ReputationTrendChart />
-        <SourceDistribution />
+      <div className="mb-6 grid w-full grid-cols-1 gap-5 xl:grid-cols-12">
+        <div className="min-w-0 xl:col-span-3">
+          <ReputationTrendChart />
+        </div>
+        <div className="min-w-0 xl:col-span-3">
+          <SourceDistribution />
+        </div>
 
         {/* Mention Feed */}
-        <Card className="flex flex-col p-5 xl:row-span-2 xl:h-full">
+        <Card className="flex min-w-0 flex-col p-5 xl:col-span-6 xl:row-span-2 xl:h-full">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h3 className="text-base font-semibold text-foreground">Mention Feed</h3>
