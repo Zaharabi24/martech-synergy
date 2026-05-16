@@ -497,8 +497,8 @@ function SourceDistribution() {
               <Pie
                 data={SOURCE_DIST}
                 dataKey="value"
-                innerRadius={62}
-                outerRadius={92}
+                innerRadius={50}
+                outerRadius={76}
                 paddingAngle={2}
                 stroke="none"
                 onClick={(d: { name?: string }) => d?.name && toast(`Filtered by ${d.name}`)}
