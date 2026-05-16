@@ -848,7 +848,7 @@ function Reputation() {
       </div>
 
       {/* Trend + Donut + Feed */}
-      <div className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr_1.1fr]">
+      <div className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[1fr_1fr_1.1fr]">
         <ReputationTrendChart />
         <SourceDistribution />
 
