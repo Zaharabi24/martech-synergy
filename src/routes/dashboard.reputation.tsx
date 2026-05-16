@@ -934,7 +934,7 @@ function Reputation() {
         </Card>
 
         {/* Channel Matrix — row 2, col 1 */}
-        <Card className="p-4">
+        <Card className="min-w-0 p-4 xl:col-span-3">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-semibold text-foreground">Channel Performance Matrix</h3>
