@@ -898,6 +898,23 @@ function Reputation() {
             })}
           </div>
 
+          {/* AI Auto Reply Agent header bar (reference 2) */}
+          <div className="mb-3 flex items-center justify-between rounded-lg border border-violet-400/20 bg-violet-500/[0.06] px-3 py-2">
+            <div className="flex items-center gap-2 text-xs">
+              <span className="grid h-5 w-5 place-items-center rounded-md bg-violet-500/20 text-violet-300">
+                <Zap className="h-3 w-3" />
+              </span>
+              <span className="font-medium text-foreground/90">AI Auto Reply Agent</span>
+              <span className="text-muted-foreground">· Active on 3 channels</span>
+            </div>
+            <button
+              onClick={() => toast("Open auto-reply configuration")}
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-violet-300 hover:text-violet-200"
+            >
+              <Settings2 className="h-3 w-3" /> Configure
+            </button>
+          </div>
+
           <div className="max-h-[640px] space-y-3 overflow-y-auto pr-1">
             {visibleFeed.map((m) => (
               <MentionCard key={m.id} m={m} pinned={feedFilter === "all" && m.risk === "high"} />
