@@ -546,7 +546,8 @@ function MentionCard({ m, pinned }: { m: Mention; pinned: boolean }) {
     "We're sorry to hear about your experience. This is not what we aim for. Please DM us your order details so we can make this right. 🙏",
   );
   const [autoReply, setAutoReply] = useState(false);
-  const [schedule, setSchedule] = useState<"now" | "best" | "later" | "custom">("now");
+  const [replyAs, setReplyAs] = useState(`${m.channel} Page`);
+  const [schedule, setSchedule] = useState<"now" | "best" | "custom">("now");
 
   const enhance = (style: string) => {
     toast.success(`Enhanced: ${style}`);
