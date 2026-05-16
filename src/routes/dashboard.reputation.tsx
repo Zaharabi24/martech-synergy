@@ -786,7 +786,7 @@ function Reputation() {
   const exportAs = (kind: string) => toast.success(`Exporting ${kind}…`);
 
   return (
-    <div className="-m-6 min-h-[calc(100vh-4rem)] bg-gradient-to-b from-background to-background/60 p-6">
+    <div className="-m-6 min-h-[calc(100vh-4rem)] overflow-x-hidden bg-gradient-to-b from-background to-background/60 p-6">
       {/* header */}
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
