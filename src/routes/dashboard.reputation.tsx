@@ -986,7 +986,7 @@ function Reputation() {
         </Card>
 
         {/* Heatmap */}
-        <Card className="p-4">
+        <Card className="min-w-0 p-4 xl:col-span-3">
           <div className="mb-3 flex items-center gap-2">
             <h3 className="text-sm font-semibold text-foreground">Reputation Risk Heatmap</h3>
             <Info className="h-3.5 w-3.5 text-muted-foreground" />
