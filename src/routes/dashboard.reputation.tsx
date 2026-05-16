@@ -915,7 +915,7 @@ function Reputation() {
             </button>
           </div>
 
-          <div className="max-h-[640px] space-y-3 overflow-y-auto pr-1">
+          <div className="flex-1 min-h-0 max-h-[640px] xl:max-h-none space-y-3 overflow-y-auto pr-1">
             {visibleFeed.map((m) => (
               <MentionCard key={m.id} m={m} pinned={feedFilter === "all" && m.risk === "high"} />
             ))}
