@@ -7,7 +7,10 @@ import {
   Facebook, Instagram, Youtube, Linkedin, Twitter, Bookmark, MoreVertical,
   ArrowUpRight, ArrowDownRight, Sparkles, Send, Smile, Paperclip,
   Wand2, ChevronDown, ChevronUp, Clock, FileText, FileSpreadsheet, FileBarChart,
+  Zap, Settings2, Languages,
 } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import {
   ResponsiveContainer, LineChart, Line, AreaChart, Area, PieChart, Pie, Cell,
   Tooltip, XAxis, YAxis, CartesianGrid, Legend,
