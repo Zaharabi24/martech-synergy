@@ -928,10 +928,8 @@ function Reputation() {
             View All Mentions →
           </button>
         </Card>
-      </div>
 
-      {/* Channel Matrix + Heatmap */}
-      <div className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.4fr_1fr]">
+        {/* Channel Matrix — row 2, col 1 */}
         <Card className="p-5">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
