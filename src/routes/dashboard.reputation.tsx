@@ -848,12 +848,12 @@ function Reputation() {
       </div>
 
       {/* Trend + Donut + Feed */}
-      <div className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr_1.1fr]">
+      <div className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[1fr_1fr_1.1fr]">
         <ReputationTrendChart />
         <SourceDistribution />
 
         {/* Mention Feed */}
-        <Card className="flex flex-col p-5">
+        <Card className="flex flex-col p-5 xl:row-span-2">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h3 className="text-base font-semibold text-foreground">Mention Feed</h3>
@@ -915,7 +915,7 @@ function Reputation() {
             </button>
           </div>
 
-          <div className="max-h-[640px] space-y-3 overflow-y-auto pr-1">
+          <div className="flex-1 min-h-0 max-h-[640px] xl:max-h-none space-y-3 overflow-y-auto pr-1">
             {visibleFeed.map((m) => (
               <MentionCard key={m.id} m={m} pinned={feedFilter === "all" && m.risk === "high"} />
             ))}
@@ -928,10 +928,8 @@ function Reputation() {
             View All Mentions →
           </button>
         </Card>
-      </div>
 
-      {/* Channel Matrix + Heatmap */}
-      <div className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.4fr_1fr]">
+        {/* Channel Matrix — row 2, col 1 */}
         <Card className="p-5">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
