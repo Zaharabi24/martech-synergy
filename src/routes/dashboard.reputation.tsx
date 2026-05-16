@@ -440,14 +440,20 @@ function ReputationTrendChart() {
             <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-rose-400" /> Risk Spike</span>
           </div>
         </div>
-        <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="h-8 w-28 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Daily">Daily</SelectItem>
-            <SelectItem value="Weekly">Weekly</SelectItem>
-            <SelectItem value="Monthly">Monthly</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="inline-flex items-center rounded-lg border border-border bg-white/5 p-0.5">
+          {["Daily", "Weekly"].map((p) => (
+            <button
+              key={p}
+              onClick={() => setPeriod(p)}
+              className={cn(
+                "rounded-md px-3 py-1 text-xs font-medium transition-colors",
+                period === p ? "bg-violet-500/20 text-violet-200" : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="h-[260px]">
         <ResponsiveContainer width="100%" height="100%">
