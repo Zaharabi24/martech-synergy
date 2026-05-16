@@ -455,7 +455,7 @@ function ReputationTrendChart() {
           ))}
         </div>
       </div>
-      <div className="h-[260px]">
+      <div className="h-[200px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={REPUTATION_TREND} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
             <defs>
