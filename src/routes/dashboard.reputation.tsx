@@ -930,10 +930,10 @@ function Reputation() {
         </Card>
 
         {/* Channel Matrix — row 2, col 1 */}
-        <Card className="p-5">
-          <div className="mb-4 flex items-center justify-between">
+        <Card className="p-4">
+          <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-semibold text-foreground">Channel Performance Matrix</h3>
+              <h3 className="text-sm font-semibold text-foreground">Channel Performance Matrix</h3>
               <Info className="h-3.5 w-3.5 text-muted-foreground" />
             </div>
             <span className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wide text-emerald-400">
