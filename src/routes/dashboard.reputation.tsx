@@ -485,13 +485,13 @@ function ReputationTrendChart() {
 /* ---------- Mention Source donut ---------- */
 function SourceDistribution() {
   return (
-    <Card className="p-5">
+    <Card className="p-4">
       <div className="mb-3 flex items-center gap-2">
-        <h3 className="text-base font-semibold text-foreground">Mention Source Distribution</h3>
+        <h3 className="text-sm font-semibold text-foreground">Mention Source Distribution</h3>
         <Info className="h-3.5 w-3.5 text-muted-foreground" />
       </div>
-      <div className="flex items-center gap-4">
-        <div className="relative h-[220px] w-[220px] shrink-0">
+      <div className="flex items-center gap-3">
+        <div className="relative h-[180px] w-[180px] shrink-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
