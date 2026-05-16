@@ -427,11 +427,11 @@ function AddYourChannel() {
 function ReputationTrendChart() {
   const [period, setPeriod] = useState("Daily");
   return (
-    <Card className="p-5">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+    <Card className="p-4">
+      <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-base font-semibold text-foreground">Reputation Health Trend</h3>
+            <h3 className="text-sm font-semibold text-foreground">Reputation Health Trend</h3>
             <Info className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
