@@ -853,7 +853,7 @@ function Reputation() {
         <SourceDistribution />
 
         {/* Mention Feed */}
-        <Card className="flex flex-col p-5 xl:row-span-2">
+        <Card className="flex flex-col p-5 xl:row-span-2 xl:h-full xl:max-h-[980px]">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h3 className="text-base font-semibold text-foreground">Mention Feed</h3>
@@ -915,7 +915,7 @@ function Reputation() {
             </button>
           </div>
 
-          <div className="flex-1 min-h-0 max-h-[640px] xl:max-h-none space-y-3 overflow-y-auto pr-1">
+          <div className="flex-1 min-h-0 max-h-[640px] xl:max-h-[860px] space-y-3 overflow-y-auto pr-1">
             {visibleFeed.map((m) => (
               <MentionCard key={m.id} m={m} pinned={feedFilter === "all" && m.risk === "high"} />
             ))}
