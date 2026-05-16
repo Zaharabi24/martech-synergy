@@ -853,7 +853,7 @@ function Reputation() {
         <SourceDistribution />
 
         {/* Mention Feed */}
-        <Card className="flex flex-col p-5">
+        <Card className="flex flex-col p-5 xl:row-span-2">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h3 className="text-base font-semibold text-foreground">Mention Feed</h3>
