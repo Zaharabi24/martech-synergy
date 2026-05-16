@@ -490,15 +490,15 @@ function SourceDistribution() {
         <h3 className="text-sm font-semibold text-foreground">Mention Source Distribution</h3>
         <Info className="h-3.5 w-3.5 text-muted-foreground" />
       </div>
-      <div className="flex items-center gap-3">
-        <div className="relative h-[180px] w-[180px] shrink-0">
+      <div className="flex flex-col items-center gap-3">
+        <div className="relative h-[170px] w-[170px] shrink-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={SOURCE_DIST}
                 dataKey="value"
-                innerRadius={50}
-                outerRadius={76}
+                innerRadius={48}
+                outerRadius={72}
                 paddingAngle={2}
                 stroke="none"
                 onClick={(d: { name?: string }) => d?.name && toast(`Filtered by ${d.name}`)}
@@ -517,7 +517,7 @@ function SourceDistribution() {
             <div className="text-[10px] text-muted-foreground">Total Mentions</div>
           </div>
         </div>
-        <div className="flex flex-1 flex-col gap-2 text-sm">
+        <div className="flex w-full flex-col gap-1.5 text-xs">
           {SOURCE_DIST.map((s) => (
             <button
               key={s.name}
@@ -786,7 +786,7 @@ function Reputation() {
   const exportAs = (kind: string) => toast.success(`Exporting ${kind}…`);
 
   return (
-    <div className="-m-6 min-h-[calc(100vh-4rem)] bg-gradient-to-b from-background to-background/60 p-6">
+    <div className="-m-6 min-h-[calc(100vh-4rem)] overflow-x-hidden bg-gradient-to-b from-background to-background/60 p-6">
       {/* header */}
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
@@ -848,12 +848,16 @@ function Reputation() {
       </div>
 
       {/* Trend + Donut + Feed */}
-      <div className="mb-6 grid grid-cols-1 gap-5 xl:grid-cols-[0.85fr_0.85fr_1.6fr]">
-        <ReputationTrendChart />
-        <SourceDistribution />
+      <div className="mb-6 grid w-full grid-cols-1 gap-5 xl:grid-cols-12">
+        <div className="min-w-0 xl:col-span-3">
+          <ReputationTrendChart />
+        </div>
+        <div className="min-w-0 xl:col-span-3">
+          <SourceDistribution />
+        </div>
 
         {/* Mention Feed */}
-        <Card className="flex flex-col p-5 xl:row-span-2 xl:h-full">
+        <Card className="flex min-w-0 flex-col p-5 xl:col-span-6 xl:row-span-2 xl:h-full">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h3 className="text-base font-semibold text-foreground">Mention Feed</h3>
@@ -930,7 +934,7 @@ function Reputation() {
         </Card>
 
         {/* Channel Matrix — row 2, col 1 */}
-        <Card className="p-4">
+        <Card className="min-w-0 p-4 xl:col-span-3">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-semibold text-foreground">Channel Performance Matrix</h3>
@@ -982,7 +986,7 @@ function Reputation() {
         </Card>
 
         {/* Heatmap */}
-        <Card className="p-4">
+        <Card className="min-w-0 p-4 xl:col-span-3">
           <div className="mb-3 flex items-center gap-2">
             <h3 className="text-sm font-semibold text-foreground">Reputation Risk Heatmap</h3>
             <Info className="h-3.5 w-3.5 text-muted-foreground" />
