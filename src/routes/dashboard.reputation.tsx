@@ -490,15 +490,15 @@ function SourceDistribution() {
         <h3 className="text-sm font-semibold text-foreground">Mention Source Distribution</h3>
         <Info className="h-3.5 w-3.5 text-muted-foreground" />
       </div>
-      <div className="flex items-center gap-3">
-        <div className="relative h-[180px] w-[180px] shrink-0">
+      <div className="flex flex-col items-center gap-3">
+        <div className="relative h-[170px] w-[170px] shrink-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={SOURCE_DIST}
                 dataKey="value"
-                innerRadius={50}
-                outerRadius={76}
+                innerRadius={48}
+                outerRadius={72}
                 paddingAngle={2}
                 stroke="none"
                 onClick={(d: { name?: string }) => d?.name && toast(`Filtered by ${d.name}`)}
@@ -517,7 +517,7 @@ function SourceDistribution() {
             <div className="text-[10px] text-muted-foreground">Total Mentions</div>
           </div>
         </div>
-        <div className="flex flex-1 flex-col gap-2 text-sm">
+        <div className="flex w-full flex-col gap-1.5 text-xs">
           {SOURCE_DIST.map((s) => (
             <button
               key={s.name}
