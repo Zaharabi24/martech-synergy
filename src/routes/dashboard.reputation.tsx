@@ -654,7 +654,7 @@ function MentionCard({ m, pinned }: { m: Mention; pinned: boolean }) {
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button size="sm" className="h-7 gap-1 bg-violet-500/90 text-white hover:bg-violet-500">
+                  <Button size="sm" className="h-7 gap-1 bg-gradient-to-r from-violet-500 to-indigo-500 text-white hover:opacity-90">
                     <Wand2 className="h-3 w-3" /> Enhance with AI <ChevronDown className="h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -664,47 +664,60 @@ function MentionCard({ m, pinned }: { m: Mention; pinned: boolean }) {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button size="icon" variant="ghost" className="h-7 w-7" aria-label="Emoji"><Smile className="h-3.5 w-3.5" /></Button>
-              <Button size="icon" variant="ghost" className="h-7 w-7" aria-label="Attach"><Paperclip className="h-3.5 w-3.5" /></Button>
+              <Button size="icon" variant="ghost" className="h-7 w-7 rounded-md border border-border bg-white/5" aria-label="Emoji"><Smile className="h-3.5 w-3.5" /></Button>
+              <Button size="icon" variant="ghost" className="h-7 w-7 rounded-md border border-border bg-white/5" aria-label="Attach"><Paperclip className="h-3.5 w-3.5" /></Button>
+              <Button size="icon" variant="ghost" className="h-7 w-7 rounded-md border border-border bg-white/5" aria-label="Translate"><Languages className="h-3.5 w-3.5" /></Button>
+              {["Empathetic", "Professional", "Short"].map((t) => (
+                <button
+                  key={t}
+                  onClick={() => enhance(t)}
+                  className="rounded-md border border-border bg-white/5 px-2.5 py-1 text-[11px] font-medium text-foreground/85 hover:bg-white/10"
+                >
+                  {t}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Auto reply + scheduling */}
+          {/* Reply-as + Schedule (matches reference 2) */}
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-md border border-border bg-white/[0.03] p-2.5">
-              <div className="flex items-center justify-between">
-                <div className="text-[11px] font-medium text-foreground/90">AI Auto Reply Agent</div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] font-medium text-foreground/90">Reply as</span>
+                <Select value={replyAs} onValueChange={setReplyAs}>
+                  <SelectTrigger className="h-7 w-[150px] text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {CHANNEL_LIST.map((c) => (
+                      <SelectItem key={c} value={`${c} Page`}>{c === "Twitter" ? "Twitter / X" : c} Page</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="mt-2.5 flex items-center justify-between gap-2">
+                <span className="text-[11px] font-medium text-foreground/90">Auto Reply</span>
                 <Switch checked={autoReply} onCheckedChange={(v) => { setAutoReply(v); toast(v ? "Auto-reply active" : "Auto-reply off"); }} />
               </div>
-              <p className="mt-1 text-[10px] leading-snug text-muted-foreground">
-                Agent auto-replies to incoming comments during active hours. Brand-safe, sentiment-aware, with human escalation.
-              </p>
             </div>
             <div className="rounded-md border border-border bg-white/[0.03] p-2.5">
               <div className="text-[11px] font-medium text-foreground/90">Schedule Auto Reply</div>
-              <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+              <RadioGroup
+                value={schedule}
+                onValueChange={(v) => setSchedule(v as typeof schedule)}
+                className="mt-1.5 space-y-1"
+              >
                 {[
                   { k: "now",    label: "Reply Immediately" },
-                  { k: "best",   label: "Best Time (AI)"    },
-                  { k: "later",  label: "Schedule for Later"},
-                  { k: "custom", label: "Custom Time"       },
+                  { k: "best",   label: "Best time (Recommended)" },
+                  { k: "custom", label: "Custom Time" },
                 ].map((o) => (
-                  <button
-                    key={o.k}
-                    onClick={() => setSchedule(o.k as typeof schedule)}
-                    className={cn(
-                      "rounded-md border px-2 py-1 text-[10px] font-medium transition-colors",
-                      schedule === o.k
-                        ? "border-violet-400/40 bg-violet-500/15 text-violet-200"
-                        : "border-border bg-white/[0.04] text-muted-foreground hover:bg-white/10",
-                    )}
-                  >
-                    {o.label}
-                  </button>
+                  <div key={o.k} className="flex items-center gap-2">
+                    <RadioGroupItem value={o.k} id={`${m.id}-${o.k}`} className="h-3.5 w-3.5 border-violet-400/60 text-violet-400" />
+                    <Label htmlFor={`${m.id}-${o.k}`} className="text-[11px] font-normal text-foreground/85">{o.label}</Label>
+                  </div>
                 ))}
-              </div>
+              </RadioGroup>
               {schedule !== "now" && (
-                <div className="mt-2 flex items-center gap-1 text-[10px] text-muted-foreground">
+                <div className="mt-1.5 flex items-center gap-1 text-[10px] text-muted-foreground">
                   <Clock className="h-3 w-3" /> Today, 7:30 PM · GMT+05:30
                 </div>
               )}
@@ -712,15 +725,18 @@ function MentionCard({ m, pinned }: { m: Mention; pinned: boolean }) {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-1">
-            <button
-              onClick={() => setOpen(false)}
-              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
-            >
-              <ChevronUp className="h-3 w-3" /> Show Less
-            </button>
+          <div className="flex items-center justify-between gap-3 pt-1">
+            <div className="flex items-start gap-1.5 text-[10px] leading-snug text-muted-foreground">
+              <Info className="mt-0.5 h-3 w-3 shrink-0" />
+              <span>AI suggestions may be inaccurate. Please review before sending.</span>
+            </div>
             <div className="flex items-center gap-2">
-              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setOpen(false)}>Cancel</Button>
+              <button
+                onClick={() => setOpen(false)}
+                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+              >
+                <ChevronUp className="h-3 w-3" /> Show Less
+              </button>
               <Button
                 size="sm"
                 className="h-7 gap-1 bg-violet-500 text-white hover:bg-violet-500/90"
