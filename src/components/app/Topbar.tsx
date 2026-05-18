@@ -1,8 +1,11 @@
-import { Bell, Search, Sparkles, ChevronDown, AlertTriangle } from "lucide-react";
+import { Bell, Search, Sparkles, ChevronDown, AlertTriangle, LogOut } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/use-auth";
+import { useNavigate } from "@tanstack/react-router";
 
 const SUGGESTIONS = [
   "Generate Q4 brand campaign brief",
@@ -16,6 +19,11 @@ const SUGGESTIONS = [
 export function Topbar() {
   const [open, setOpen] = useState(false);
   const [notifs, setNotifs] = useState(true);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const displayName = (user?.user_metadata?.full_name as string) || (user?.user_metadata?.brand_name as string) || user?.email?.split("@")[0] || "Guest";
+  const initials = displayName.slice(0, 2).toUpperCase();
+  const subline = user ? user.email : "Demo workspace";
 
   return (
     <>
@@ -47,14 +55,31 @@ export function Topbar() {
               {notifs && <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-rose-500 animate-pulse" />}
             </button>
 
-            <div className="flex items-center gap-2 pl-2 ml-1 border-l border-white/10">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 grid place-items-center text-xs font-semibold">AK</div>
-              <div className="hidden md:block leading-tight">
-                <div className="text-xs font-medium">Aisha K.</div>
-                <div className="text-[10px] text-muted-foreground">CMO · Acme Co</div>
-              </div>
-              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 pl-2 ml-1 border-l border-white/10 hover:opacity-90">
+                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 grid place-items-center text-xs font-semibold">{initials}</div>
+                  <div className="hidden md:block leading-tight text-left">
+                    <div className="text-xs font-medium">{displayName}</div>
+                    <div className="text-[10px] text-muted-foreground truncate max-w-[140px]">{subline}</div>
+                  </div>
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {user ? (
+                  <>
+                    <DropdownMenuItem disabled className="text-xs opacity-70">{user.email}</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={async () => { await signOut(); navigate({ to: "/" }); }}>
+                      <LogOut className="h-3.5 w-3.5 mr-2" /> Sign out
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <DropdownMenuItem onClick={() => navigate({ to: "/" })}>Go to landing</DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
