@@ -2,18 +2,57 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import {
-  MessageCircle, AlertTriangle, Star, TrendingUp, Target,
-  CalendarIcon, Download, Plus, Search, Link2, Info,
-  Facebook, Instagram, Youtube, Linkedin, Twitter, Bookmark, MoreVertical,
-  ArrowUpRight, ArrowDownRight, Sparkles, Send, Smile, Paperclip,
-  Wand2, ChevronDown, ChevronUp, Clock, FileText, FileSpreadsheet, FileBarChart,
-  Zap, Settings2, Languages,
+  MessageCircle,
+  AlertTriangle,
+  Star,
+  TrendingUp,
+  Target,
+  CalendarIcon,
+  Download,
+  Plus,
+  Search,
+  Link2,
+  Info,
+  Facebook,
+  Instagram,
+  Youtube,
+  Linkedin,
+  Twitter,
+  Bookmark,
+  MoreVertical,
+  ArrowUpRight,
+  ArrowDownRight,
+  Sparkles,
+  Send,
+  Smile,
+  Paperclip,
+  Wand2,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  FileText,
+  FileSpreadsheet,
+  FileBarChart,
+  Zap,
+  Settings2,
+  Languages,
 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import {
-  ResponsiveContainer, LineChart, Line, AreaChart, Area, PieChart, Pie, Cell,
-  Tooltip, XAxis, YAxis, CartesianGrid, Legend,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Legend,
 } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +63,12 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { DateRange } from "react-day-picker";
@@ -36,11 +80,11 @@ export const Route = createFileRoute("/dashboard/reputation")({
 
 /* ---------- channel meta ---------- */
 const CHANNEL_META = {
-  Facebook:  { icon: Facebook,  color: "#3b82f6" },
+  Facebook: { icon: Facebook, color: "#3b82f6" },
   Instagram: { icon: Instagram, color: "#ec4899" },
-  YouTube:   { icon: Youtube,   color: "#ef4444" },
-  LinkedIn:  { icon: Linkedin,  color: "#0ea5e9" },
-  Twitter:   { icon: Twitter,   color: "#a78bfa" },
+  YouTube: { icon: Youtube, color: "#ef4444" },
+  LinkedIn: { icon: Linkedin, color: "#0ea5e9" },
+  Twitter: { icon: Twitter, color: "#a78bfa" },
 } as const;
 type ChannelName = keyof typeof CHANNEL_META;
 const CHANNEL_LIST = Object.keys(CHANNEL_META) as ChannelName[];
@@ -54,19 +98,54 @@ const channelMatrix: {
   audienceGrowth: number;
   interactionRate: number;
 }[] = [
-  { name: "Facebook",  totalMentions: 842, mentionVolume: 1240, engagementRate: 6.4, audienceGrowth: 4.2, interactionRate: 3.1 },
-  { name: "Instagram", totalMentions: 614, mentionVolume:  980, engagementRate: 8.7, audienceGrowth: 7.5, interactionRate: 5.6 },
-  { name: "YouTube",   totalMentions: 232, mentionVolume:  410, engagementRate: 5.2, audienceGrowth: 2.8, interactionRate: 2.4 },
-  { name: "LinkedIn",  totalMentions: 318, mentionVolume:  520, engagementRate: 4.1, audienceGrowth: 3.6, interactionRate: 2.0 },
-  { name: "Twitter",   totalMentions: 542, mentionVolume:  870, engagementRate: 3.8, audienceGrowth: 1.9, interactionRate: 4.2 },
+  {
+    name: "Facebook",
+    totalMentions: 842,
+    mentionVolume: 1240,
+    engagementRate: 6.4,
+    audienceGrowth: 4.2,
+    interactionRate: 3.1,
+  },
+  {
+    name: "Instagram",
+    totalMentions: 614,
+    mentionVolume: 980,
+    engagementRate: 8.7,
+    audienceGrowth: 7.5,
+    interactionRate: 5.6,
+  },
+  {
+    name: "YouTube",
+    totalMentions: 232,
+    mentionVolume: 410,
+    engagementRate: 5.2,
+    audienceGrowth: 2.8,
+    interactionRate: 2.4,
+  },
+  {
+    name: "LinkedIn",
+    totalMentions: 318,
+    mentionVolume: 520,
+    engagementRate: 4.1,
+    audienceGrowth: 3.6,
+    interactionRate: 2.0,
+  },
+  {
+    name: "Twitter",
+    totalMentions: 542,
+    mentionVolume: 870,
+    engagementRate: 3.8,
+    audienceGrowth: 1.9,
+    interactionRate: 4.2,
+  },
 ];
 
 const SOURCE_DIST = [
-  { name: "Facebook",  value: 752, pct: 35 },
+  { name: "Facebook", value: 752, pct: 35 },
   { name: "Instagram", value: 601, pct: 28 },
-  { name: "Twitter",   value: 430, pct: 20 },
-  { name: "LinkedIn",  value: 215, pct: 10 },
-  { name: "YouTube",   value: 150, pct: 7  },
+  { name: "Twitter", value: 430, pct: 20 },
+  { name: "LinkedIn", value: 215, pct: 10 },
+  { name: "YouTube", value: 150, pct: 7 },
 ];
 
 const REPUTATION_TREND = [
@@ -95,11 +174,11 @@ const RISK_COLOR: Record<RiskLevel, string> = {
   Critical: "bg-rose-500/30 text-rose-100 border-rose-400/40",
 };
 const HEATMAP: Record<ChannelName, Record<Bucket, RiskLevel>> = {
-  Facebook:  { Morning: "Low",    Afternoon: "Medium", Evening: "High",   Night: "Critical" },
-  Instagram: { Morning: "Low",    Afternoon: "Medium", Evening: "High",   Night: "Critical" },
-  Twitter:   { Morning: "Medium", Afternoon: "High",   Evening: "High",   Night: "Critical" },
-  LinkedIn:  { Morning: "Low",    Afternoon: "Medium", Evening: "High",   Night: "High"     },
-  YouTube:   { Morning: "Low",    Afternoon: "Low",    Evening: "Medium", Night: "High"     },
+  Facebook: { Morning: "Low", Afternoon: "Medium", Evening: "High", Night: "Critical" },
+  Instagram: { Morning: "Low", Afternoon: "Medium", Evening: "High", Night: "Critical" },
+  Twitter: { Morning: "Medium", Afternoon: "High", Evening: "High", Night: "Critical" },
+  LinkedIn: { Morning: "Low", Afternoon: "Medium", Evening: "High", Night: "High" },
+  YouTube: { Morning: "Low", Afternoon: "Low", Evening: "Medium", Night: "High" },
 };
 
 // sparkline helpers
@@ -123,22 +202,127 @@ type Mention = {
 };
 
 const FEED: Mention[] = [
-  { id: "m1", user: "Crisis Watch",   initials: "CW", channel: "Facebook",  text: "Negative thread gaining traction — 240+ angry comments in the last hour.",     score: 18, tone: "neg",  risk: "high",    updatedMinAgo: 10 },
-  { id: "m2", user: "@upsetcustomer", initials: "UC", channel: "Twitter",   text: "Support never replied to my refund request. Disappointed. #brandfail",        score: 22, tone: "neg",  risk: "high",    updatedMinAgo: 20 },
-  { id: "m3", user: "@boycottnews",   initials: "BN", channel: "Instagram", text: "Reel calling out the brand passed 50k views, mostly negative sentiment.",      score: 26, tone: "neg",  risk: "high",    updatedMinAgo: 35 },
-  { id: "m4", user: "@trendlens",     initials: "TL", channel: "Twitter",   text: "Honestly @brandsync is the cleanest MarTech UI I've used in years.",          score: 82, tone: "good", risk: "impact",  updatedMinAgo: 42 },
-  { id: "m5", user: "TechCrunch",     initials: "TC", channel: "LinkedIn",  text: "Verified outlet shared a feature story — strong reach across the network.",   score: 78, tone: "good", risk: "impact",  updatedMinAgo: 55 },
-  { id: "m6", user: "Creator Hub",    initials: "CH", channel: "YouTube",   text: "Review video crossed 120k views with mostly positive comments.",               score: 74, tone: "good", risk: "impact",  updatedMinAgo: 68 },
-  { id: "m7", user: "@growthnerd",    initials: "GN", channel: "Twitter",   text: "Hashtag #BrandSyncWorks just jumped 4× in the last hour — keep watching.",     score: 64, tone: "warn", risk: "rising",  updatedMinAgo: 18 },
-  { id: "m8", user: "@adopslead",     initials: "AD", channel: "LinkedIn",  text: "Cut paid spend by 38% in 6 weeks switching to BrandSync auto-pilot.",          score: 71, tone: "warn", risk: "rising",  updatedMinAgo: 30 },
-  { id: "m9", user: "@cmoworld",      initials: "CM", channel: "Instagram", text: "BrandSync's predictive simulation literally saved a $40k campaign.",            score: 86, tone: "good", risk: "normal",  updatedMinAgo: 44 },
-  { id: "m10", user: "@happyuser",    initials: "HU", channel: "Facebook",  text: "Onboarding was smooth. Loving the new dashboard.",                              score: 70, tone: "good", risk: "normal",  updatedMinAgo: 60 },
+  {
+    id: "m1",
+    user: "Crisis Watch",
+    initials: "CW",
+    channel: "Facebook",
+    text: "Negative thread gaining traction — 240+ angry comments in the last hour.",
+    score: 18,
+    tone: "neg",
+    risk: "high",
+    updatedMinAgo: 10,
+  },
+  {
+    id: "m2",
+    user: "@upsetcustomer",
+    initials: "UC",
+    channel: "Twitter",
+    text: "Support never replied to my refund request. Disappointed. #brandfail",
+    score: 22,
+    tone: "neg",
+    risk: "high",
+    updatedMinAgo: 20,
+  },
+  {
+    id: "m3",
+    user: "@boycottnews",
+    initials: "BN",
+    channel: "Instagram",
+    text: "Reel calling out the brand passed 50k views, mostly negative sentiment.",
+    score: 26,
+    tone: "neg",
+    risk: "high",
+    updatedMinAgo: 35,
+  },
+  {
+    id: "m4",
+    user: "@trendlens",
+    initials: "TL",
+    channel: "Twitter",
+    text: "Honestly @brandsync is the cleanest MarTech UI I've used in years.",
+    score: 82,
+    tone: "good",
+    risk: "impact",
+    updatedMinAgo: 42,
+  },
+  {
+    id: "m5",
+    user: "TechCrunch",
+    initials: "TC",
+    channel: "LinkedIn",
+    text: "Verified outlet shared a feature story — strong reach across the network.",
+    score: 78,
+    tone: "good",
+    risk: "impact",
+    updatedMinAgo: 55,
+  },
+  {
+    id: "m6",
+    user: "Creator Hub",
+    initials: "CH",
+    channel: "YouTube",
+    text: "Review video crossed 120k views with mostly positive comments.",
+    score: 74,
+    tone: "good",
+    risk: "impact",
+    updatedMinAgo: 68,
+  },
+  {
+    id: "m7",
+    user: "@growthnerd",
+    initials: "GN",
+    channel: "Twitter",
+    text: "Hashtag #BrandSyncWorks just jumped 4× in the last hour — keep watching.",
+    score: 64,
+    tone: "warn",
+    risk: "rising",
+    updatedMinAgo: 18,
+  },
+  {
+    id: "m8",
+    user: "@adopslead",
+    initials: "AD",
+    channel: "LinkedIn",
+    text: "Cut paid spend by 38% in 6 weeks switching to BrandSync auto-pilot.",
+    score: 71,
+    tone: "warn",
+    risk: "rising",
+    updatedMinAgo: 30,
+  },
+  {
+    id: "m9",
+    user: "@cmoworld",
+    initials: "CM",
+    channel: "Instagram",
+    text: "BrandSync's predictive simulation literally saved a $40k campaign.",
+    score: 86,
+    tone: "good",
+    risk: "normal",
+    updatedMinAgo: 44,
+  },
+  {
+    id: "m10",
+    user: "@happyuser",
+    initials: "HU",
+    channel: "Facebook",
+    text: "Onboarding was smooth. Loving the new dashboard.",
+    score: 70,
+    tone: "good",
+    risk: "normal",
+    updatedMinAgo: 60,
+  },
 ];
 
 /* ---------- atoms ---------- */
 function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={cn("rounded-2xl border border-border bg-card/80 backdrop-blur-md shadow-[0_1px_2px_rgba(0,0,0,0.25)]", className)}>
+    <div
+      className={cn(
+        "rounded-2xl border border-border bg-card/80 backdrop-blur-md shadow-[0_1px_2px_rgba(0,0,0,0.25)]",
+        className,
+      )}
+    >
       {children}
     </div>
   );
@@ -163,10 +347,30 @@ function Sparkline({ seed, color }: { seed: number; color: string }) {
   );
 }
 
-function KPI({ label, value, delta, deltaTone, icon, iconBg, iconColor, accent, sparkColor, seed, onClick }: {
-  label: string; value: string; delta?: string; deltaTone?: "up" | "down";
-  icon: React.ReactNode; iconBg: string; iconColor: string; accent?: boolean;
-  sparkColor: string; seed: number; onClick?: () => void;
+function KPI({
+  label,
+  value,
+  delta,
+  deltaTone,
+  icon,
+  iconBg,
+  iconColor,
+  accent,
+  sparkColor,
+  seed,
+  onClick,
+}: {
+  label: string;
+  value: string;
+  delta?: string;
+  deltaTone?: "up" | "down";
+  icon: React.ReactNode;
+  iconBg: string;
+  iconColor: string;
+  accent?: boolean;
+  sparkColor: string;
+  seed: number;
+  onClick?: () => void;
 }) {
   return (
     <Card
@@ -185,10 +389,14 @@ function KPI({ label, value, delta, deltaTone, icon, iconBg, iconColor, accent, 
         </div>
         {delta && (
           <div className="mt-3 flex items-center gap-1.5 text-xs">
-            {deltaTone === "down"
-              ? <ArrowDownRight className="h-3.5 w-3.5 text-rose-400" />
-              : <ArrowUpRight className="h-3.5 w-3.5 text-emerald-400" />}
-            <span className={cn("font-semibold", deltaTone === "down" ? "text-rose-400" : "text-emerald-400")}>{delta}</span>
+            {deltaTone === "down" ? (
+              <ArrowDownRight className="h-3.5 w-3.5 text-rose-400" />
+            ) : (
+              <ArrowUpRight className="h-3.5 w-3.5 text-emerald-400" />
+            )}
+            <span className={cn("font-semibold", deltaTone === "down" ? "text-rose-400" : "text-emerald-400")}>
+              {delta}
+            </span>
             <span className="text-muted-foreground">vs. previous period</span>
           </div>
         )}
@@ -216,12 +424,23 @@ function ChannelChip({ channel }: { channel: ChannelName }) {
 type DateMode = "single" | "range" | "multiple";
 
 function DateFilter({
-  mode, setMode, single, setSingle, range, setRange, multi, setMulti,
+  mode,
+  setMode,
+  single,
+  setSingle,
+  range,
+  setRange,
+  multi,
+  setMulti,
 }: {
-  mode: DateMode; setMode: (m: DateMode) => void;
-  single?: Date; setSingle: (d?: Date) => void;
-  range?: DateRange; setRange: (r?: DateRange) => void;
-  multi: Date[]; setMulti: (d: Date[]) => void;
+  mode: DateMode;
+  setMode: (m: DateMode) => void;
+  single?: Date;
+  setSingle: (d?: Date) => void;
+  range?: DateRange;
+  setRange: (r?: DateRange) => void;
+  multi: Date[];
+  setMulti: (d: Date[]) => void;
 }) {
   const label = useMemo(() => {
     if (mode === "single") return single ? format(single, "MMM d, yyyy") : "Pick a date";
@@ -259,13 +478,32 @@ function DateFilter({
           ))}
         </div>
         {mode === "single" && (
-          <Calendar mode="single" selected={single} onSelect={setSingle} initialFocus className="pointer-events-auto p-3" />
+          <Calendar
+            mode="single"
+            selected={single}
+            onSelect={setSingle}
+            initialFocus
+            className="pointer-events-auto p-3"
+          />
         )}
         {mode === "range" && (
-          <Calendar mode="range" selected={range} onSelect={setRange} numberOfMonths={2} initialFocus className="pointer-events-auto p-3" />
+          <Calendar
+            mode="range"
+            selected={range}
+            onSelect={setRange}
+            numberOfMonths={2}
+            initialFocus
+            className="pointer-events-auto p-3"
+          />
         )}
         {mode === "multiple" && (
-          <Calendar mode="multiple" selected={multi} onSelect={(d) => setMulti(d ?? [])} initialFocus className="pointer-events-auto p-3" />
+          <Calendar
+            mode="multiple"
+            selected={multi}
+            onSelect={(d) => setMulti(d ?? [])}
+            initialFocus
+            className="pointer-events-auto p-3"
+          />
         )}
       </PopoverContent>
     </Popover>
@@ -317,7 +555,9 @@ function AddYourChannel() {
                     )}
                   >
                     <Icon className="h-5 w-5" style={{ color: CHANNEL_META[c].color }} />
-                    {on && <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-card" />}
+                    {on && (
+                      <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-card" />
+                    )}
                   </span>
                   <span className="text-[10px] text-muted-foreground">{c === "Twitter" ? "Twitter / X" : c}</span>
                 </button>
@@ -333,7 +573,9 @@ function AddYourChannel() {
                 </button>
               </DialogTrigger>
               <DialogContent>
-                <DialogHeader><DialogTitle>Manage connections</DialogTitle></DialogHeader>
+                <DialogHeader>
+                  <DialogTitle>Manage connections</DialogTitle>
+                </DialogHeader>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {CHANNEL_LIST.map((c) => {
                     const Icon = CHANNEL_META[c].icon;
@@ -348,7 +590,9 @@ function AddYourChannel() {
                         )}
                       >
                         <Icon className="h-6 w-6" style={{ color: CHANNEL_META[c].color }} />
-                        <span className="text-sm font-medium text-foreground">{c === "Twitter" ? "Twitter / X" : c}</span>
+                        <span className="text-sm font-medium text-foreground">
+                          {c === "Twitter" ? "Twitter / X" : c}
+                        </span>
                         <span className={cn("text-[10px]", on ? "text-emerald-400" : "text-muted-foreground")}>
                           {on ? "Connected" : "Connect"}
                         </span>
@@ -435,9 +679,15 @@ function ReputationTrendChart() {
             <Info className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-violet-400" /> Reputation Score</span>
-            <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-sky-400" /> Mention Volume</span>
-            <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-rose-400" /> Risk Spike</span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-violet-400" /> Reputation Score
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-sky-400" /> Mention Volume
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-rose-400" /> Risk Spike
+            </span>
           </div>
         </div>
         <div className="inline-flex items-center rounded-lg border border-border bg-white/5 p-0.5">
@@ -466,15 +716,58 @@ function ReputationTrendChart() {
             </defs>
             <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
             <XAxis dataKey="day" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis yAxisId="left" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} domain={[0, 100]} />
-            <YAxis yAxisId="right" orientation="right" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} domain={[0, 2000]} />
+            <YAxis
+              yAxisId="left"
+              tick={{ fill: "#94a3b8", fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+              domain={[0, 100]}
+            />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              tick={{ fill: "#94a3b8", fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+              domain={[0, 2000]}
+            />
             <Tooltip
-              contentStyle={{ background: "rgba(15,23,42,0.95)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 12 }}
+              contentStyle={{
+                background: "rgba(15,23,42,0.95)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: 10,
+                fontSize: 12,
+              }}
               labelStyle={{ color: "#e2e8f0" }}
             />
-            <Line yAxisId="left" type="monotone" dataKey="score"  stroke="url(#gScore)" strokeWidth={2.5} dot={{ r: 3, fill: "#a78bfa" }} activeDot={{ r: 5 }} name="Reputation Score" />
-            <Line yAxisId="right" type="monotone" dataKey="volume" stroke="#38bdf8" strokeWidth={2} dot={{ r: 2.5, fill: "#38bdf8" }} name="Mention Volume" />
-            <Line yAxisId="left" type="monotone" dataKey="risk" stroke="#f43f5e" strokeWidth={0} dot={{ r: 5, fill: "#f43f5e" }} name="Risk Spike" />
+            <Line
+              yAxisId="left"
+              type="monotone"
+              dataKey="score"
+              stroke="url(#gScore)"
+              strokeWidth={2.5}
+              dot={{ r: 3, fill: "#a78bfa" }}
+              activeDot={{ r: 5 }}
+              name="Reputation Score"
+            />
+            <Line
+              yAxisId="right"
+              type="monotone"
+              dataKey="volume"
+              stroke="#38bdf8"
+              strokeWidth={2}
+              dot={{ r: 2.5, fill: "#38bdf8" }}
+              name="Mention Volume"
+            />
+            <Line
+              yAxisId="left"
+              type="monotone"
+              dataKey="risk"
+              stroke="#f43f5e"
+              strokeWidth={0}
+              dot={{ r: 5, fill: "#f43f5e" }}
+              name="Risk Spike"
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -508,7 +801,12 @@ function SourceDistribution() {
                 ))}
               </Pie>
               <Tooltip
-                contentStyle={{ background: "rgba(15,23,42,0.95)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 12 }}
+                contentStyle={{
+                  background: "rgba(15,23,42,0.95)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: 10,
+                  fontSize: 12,
+                }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -525,7 +823,10 @@ function SourceDistribution() {
               className="flex items-center justify-between rounded-md px-2 py-1 text-left transition-colors hover:bg-white/5"
             >
               <span className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-sm" style={{ background: CHANNEL_META[s.name as ChannelName].color }} />
+                <span
+                  className="h-2.5 w-2.5 rounded-sm"
+                  style={{ background: CHANNEL_META[s.name as ChannelName].color }}
+                />
                 <span className="text-foreground/90">{s.name === "Twitter" ? "Twitter / X" : s.name}</span>
               </span>
               <span className="tabular-nums text-muted-foreground">
@@ -577,21 +878,28 @@ function MentionCard({ m, pinned }: { m: Mention; pinned: boolean }) {
           <span
             className={cn(
               "rounded-md px-1.5 py-0.5 text-[10px] font-semibold",
-              m.risk === "high"   ? "bg-rose-500/20 text-rose-300" :
-              m.risk === "impact" ? "bg-amber-500/20 text-amber-300" :
-              m.risk === "rising" ? "bg-violet-500/20 text-violet-200" :
-                                    "bg-white/10 text-muted-foreground",
+              m.risk === "high"
+                ? "bg-rose-500/20 text-rose-300"
+                : m.risk === "impact"
+                  ? "bg-amber-500/20 text-amber-300"
+                  : m.risk === "rising"
+                    ? "bg-violet-500/20 text-violet-200"
+                    : "bg-white/10 text-muted-foreground",
             )}
           >
-            {m.risk === "high" ? "High Risk" : m.risk === "impact" ? "High Impact" : m.risk === "rising" ? "Rising" : "Normal"}
+            {m.risk === "high"
+              ? "High Risk"
+              : m.risk === "impact"
+                ? "High Impact"
+                : m.risk === "rising"
+                  ? "Rising"
+                  : "Normal"}
           </span>
           <span className="text-[10px] text-muted-foreground">Score</span>
           <span
             className={cn(
               "text-xl font-semibold tabular-nums leading-none",
-              m.tone === "neg"  ? "text-rose-400" :
-              m.tone === "warn" ? "text-amber-300" :
-                                  "text-emerald-400",
+              m.tone === "neg" ? "text-rose-400" : m.tone === "warn" ? "text-amber-300" : "text-emerald-400",
             )}
           >
             {m.score}
@@ -610,10 +918,14 @@ function MentionCard({ m, pinned }: { m: Mention; pinned: boolean }) {
             <Sparkles className="h-3.5 w-3.5" /> Reply with AI
           </Button>
           <div className="flex items-center gap-2 text-muted-foreground">
-            <button className="hover:text-foreground" aria-label="Bookmark"><Bookmark className="h-3.5 w-3.5" /></button>
+            <button className="hover:text-foreground" aria-label="Bookmark">
+              <Bookmark className="h-3.5 w-3.5" />
+            </button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="hover:text-foreground"><MoreVertical className="h-3.5 w-3.5" /></button>
+                <button className="hover:text-foreground">
+                  <MoreVertical className="h-3.5 w-3.5" />
+                </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => toast("Mention muted")}>Mute</DropdownMenuItem>
@@ -632,11 +944,14 @@ function MentionCard({ m, pinned }: { m: Mention; pinned: boolean }) {
           <div>
             <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-violet-300">
               <Sparkles className="h-3 w-3" /> AI Recommended Reply
-              <Badge variant="secondary" className="ml-1 h-4 rounded-md bg-violet-500/20 px-1.5 text-[9px] text-violet-200">Suggested</Badge>
+              <Badge
+                variant="secondary"
+                className="ml-1 h-4 rounded-md bg-violet-500/20 px-1.5 text-[9px] text-violet-200"
+              >
+                Suggested
+              </Badge>
             </div>
-            <p className="rounded-md bg-black/20 p-2 text-xs text-foreground/85">
-              {reply}
-            </p>
+            <p className="rounded-md bg-black/20 p-2 text-xs text-foreground/85">{reply}</p>
           </div>
 
           {/* Custom editor */}
@@ -654,19 +969,52 @@ function MentionCard({ m, pinned }: { m: Mention; pinned: boolean }) {
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button size="sm" className="h-7 gap-1 bg-gradient-to-r from-violet-500 to-indigo-500 text-white hover:opacity-90">
+                  <Button
+                    size="sm"
+                    className="h-7 gap-1 bg-gradient-to-r from-violet-500 to-indigo-500 text-white hover:opacity-90"
+                  >
                     <Wand2 className="h-3 w-3" /> Enhance with AI <ChevronDown className="h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  {["More professional", "Friendlier", "Shorter", "More empathetic", "More assertive", "Boost engagement"].map((s) => (
-                    <DropdownMenuItem key={s} onClick={() => enhance(s)}>{s}</DropdownMenuItem>
+                  {[
+                    "More professional",
+                    "Friendlier",
+                    "Shorter",
+                    "More empathetic",
+                    "More assertive",
+                    "Boost engagement",
+                  ].map((s) => (
+                    <DropdownMenuItem key={s} onClick={() => enhance(s)}>
+                      {s}
+                    </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button size="icon" variant="ghost" className="h-7 w-7 rounded-md border border-border bg-white/5" aria-label="Emoji"><Smile className="h-3.5 w-3.5" /></Button>
-              <Button size="icon" variant="ghost" className="h-7 w-7 rounded-md border border-border bg-white/5" aria-label="Attach"><Paperclip className="h-3.5 w-3.5" /></Button>
-              <Button size="icon" variant="ghost" className="h-7 w-7 rounded-md border border-border bg-white/5" aria-label="Translate"><Languages className="h-3.5 w-3.5" /></Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 rounded-md border border-border bg-white/5"
+                aria-label="Emoji"
+              >
+                <Smile className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 rounded-md border border-border bg-white/5"
+                aria-label="Attach"
+              >
+                <Paperclip className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 rounded-md border border-border bg-white/5"
+                aria-label="Translate"
+              >
+                <Languages className="h-3.5 w-3.5" />
+              </Button>
               {["Empathetic", "Professional", "Short"].map((t) => (
                 <button
                   key={t}
@@ -685,17 +1033,27 @@ function MentionCard({ m, pinned }: { m: Mention; pinned: boolean }) {
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] font-medium text-foreground/90">Reply as</span>
                 <Select value={replyAs} onValueChange={setReplyAs}>
-                  <SelectTrigger className="h-7 w-[150px] text-xs"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-7 w-[150px] text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     {CHANNEL_LIST.map((c) => (
-                      <SelectItem key={c} value={`${c} Page`}>{c === "Twitter" ? "Twitter / X" : c} Page</SelectItem>
+                      <SelectItem key={c} value={`${c} Page`}>
+                        {c === "Twitter" ? "Twitter / X" : c} Page
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="mt-2.5 flex items-center justify-between gap-2">
                 <span className="text-[11px] font-medium text-foreground/90">Auto Reply</span>
-                <Switch checked={autoReply} onCheckedChange={(v) => { setAutoReply(v); toast(v ? "Auto-reply active" : "Auto-reply off"); }} />
+                <Switch
+                  checked={autoReply}
+                  onCheckedChange={(v) => {
+                    setAutoReply(v);
+                    toast(v ? "Auto-reply active" : "Auto-reply off");
+                  }}
+                />
               </div>
             </div>
             <div className="rounded-md border border-border bg-white/[0.03] p-2.5">
@@ -706,13 +1064,19 @@ function MentionCard({ m, pinned }: { m: Mention; pinned: boolean }) {
                 className="mt-1.5 space-y-1"
               >
                 {[
-                  { k: "now",    label: "Reply Immediately" },
-                  { k: "best",   label: "Best time (Recommended)" },
+                  { k: "now", label: "Reply Immediately" },
+                  { k: "best", label: "Best time (Recommended)" },
                   { k: "custom", label: "Custom Time" },
                 ].map((o) => (
                   <div key={o.k} className="flex items-center gap-2">
-                    <RadioGroupItem value={o.k} id={`${m.id}-${o.k}`} className="h-3.5 w-3.5 border-violet-400/60 text-violet-400" />
-                    <Label htmlFor={`${m.id}-${o.k}`} className="text-[11px] font-normal text-foreground/85">{o.label}</Label>
+                    <RadioGroupItem
+                      value={o.k}
+                      id={`${m.id}-${o.k}`}
+                      className="h-3.5 w-3.5 border-violet-400/60 text-violet-400"
+                    />
+                    <Label htmlFor={`${m.id}-${o.k}`} className="text-[11px] font-normal text-foreground/85">
+                      {o.label}
+                    </Label>
                   </div>
                 ))}
               </RadioGroup>
@@ -765,22 +1129,20 @@ function Reputation() {
   const [multi, setMulti] = useState<Date[]>([]);
 
   const highRiskCount = FEED.filter((m) => m.risk === "high").length;
-  const impactCount   = FEED.filter((m) => m.risk === "impact").length;
-  const risingCount   = FEED.filter((m) => m.risk === "rising").length;
+  const impactCount = FEED.filter((m) => m.risk === "impact").length;
+  const risingCount = FEED.filter((m) => m.risk === "rising").length;
 
   const visibleFeed = useMemo(() => {
     if (feedFilter === "all") {
       const highRisk = FEED.filter((m) => m.risk === "high")
         .sort((a, b) => a.updatedMinAgo - b.updatedMinAgo)
         .slice(0, 3);
-      const rest = FEED
-        .filter((m) => !highRisk.includes(m))
-        .sort((a, b) => a.updatedMinAgo - b.updatedMinAgo);
+      const rest = FEED.filter((m) => !highRisk.includes(m)).sort((a, b) => a.updatedMinAgo - b.updatedMinAgo);
       return [...highRisk, ...rest];
     }
-    return FEED
-      .filter((m) => (feedFilter === "high" ? m.risk === "high" : feedFilter === "impact" ? m.risk === "impact" : m.risk === "rising"))
-      .sort((a, b) => a.updatedMinAgo - b.updatedMinAgo);
+    return FEED.filter((m) =>
+      feedFilter === "high" ? m.risk === "high" : feedFilter === "impact" ? m.risk === "impact" : m.risk === "rising",
+    ).sort((a, b) => a.updatedMinAgo - b.updatedMinAgo);
   }, [feedFilter]);
 
   const exportAs = (kind: string) => toast.success(`Exporting ${kind}…`);
@@ -797,10 +1159,14 @@ function Reputation() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <DateFilter
-            mode={mode} setMode={setMode}
-            single={single} setSingle={setSingle}
-            range={range} setRange={setRange}
-            multi={multi} setMulti={setMulti}
+            mode={mode}
+            setMode={setMode}
+            single={single}
+            setSingle={setSingle}
+            range={range}
+            setRange={setRange}
+            multi={multi}
+            setMulti={setMulti}
           />
           <button
             onClick={() => setMode("range")}
@@ -816,11 +1182,21 @@ function Reputation() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => exportAs("PDF")}><FileText className="mr-2 h-4 w-4" /> PDF Export</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => exportAs("CSV")}><FileSpreadsheet className="mr-2 h-4 w-4" /> CSV Export</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => exportAs("AI Summary")}><Sparkles className="mr-2 h-4 w-4" /> AI Summary Report</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => exportAs("Reputation Snapshot")}><FileBarChart className="mr-2 h-4 w-4" /> Reputation Snapshot</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => exportAs("Mention Performance Summary")}><FileBarChart className="mr-2 h-4 w-4" /> Mention Performance</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportAs("PDF")}>
+                <FileText className="mr-2 h-4 w-4" /> PDF Export
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportAs("CSV")}>
+                <FileSpreadsheet className="mr-2 h-4 w-4" /> CSV Export
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportAs("AI Summary")}>
+                <Sparkles className="mr-2 h-4 w-4" /> AI Summary Report
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportAs("Reputation Snapshot")}>
+                <FileBarChart className="mr-2 h-4 w-4" /> Reputation Snapshot
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportAs("Mention Performance Summary")}>
+                <FileBarChart className="mr-2 h-4 w-4" /> Mention Performance
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -830,21 +1206,66 @@ function Reputation() {
 
       {/* KPI row */}
       <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <KPI label="Total Mentions" value="2,148" delta="18%" deltaTone="up"
-          icon={<MessageCircle className="h-5 w-5" />} iconBg="bg-violet-500/15" iconColor="text-violet-300"
-          sparkColor="#60a5fa" seed={1} onClick={() => setFeedFilter("all")} />
-        <KPI accent label="Needs Attention (High Risk)" value="412" delta="12%" deltaTone="down"
-          icon={<AlertTriangle className="h-5 w-5" />} iconBg="bg-rose-500/15" iconColor="text-rose-300"
-          sparkColor="#f43f5e" seed={2} onClick={() => setFeedFilter("high")} />
-        <KPI label="High Impact Mentions" value="321" delta="23%" deltaTone="up"
-          icon={<Star className="h-5 w-5" />} iconBg="bg-amber-500/15" iconColor="text-amber-300"
-          sparkColor="#fbbf24" seed={3} onClick={() => setFeedFilter("impact")} />
-        <KPI label="Rising Mentions" value="128" delta="29%" deltaTone="up"
-          icon={<TrendingUp className="h-5 w-5" />} iconBg="bg-indigo-500/15" iconColor="text-indigo-300"
-          sparkColor="#a78bfa" seed={4} onClick={() => setFeedFilter("rising")} />
-        <KPI label="Average AI Score" value="63" delta="6 pts" deltaTone="up"
-          icon={<Target className="h-5 w-5" />} iconBg="bg-emerald-500/15" iconColor="text-emerald-300"
-          sparkColor="#34d399" seed={5} />
+        <KPI
+          label="Total Mentions"
+          value="2,148"
+          delta="18%"
+          deltaTone="up"
+          icon={<MessageCircle className="h-5 w-5" />}
+          iconBg="bg-violet-500/15"
+          iconColor="text-violet-300"
+          sparkColor="#60a5fa"
+          seed={1}
+          onClick={() => setFeedFilter("all")}
+        />
+        <KPI
+          accent
+          label="Needs Attention (High Risk)"
+          value="412"
+          delta="12%"
+          deltaTone="down"
+          icon={<AlertTriangle className="h-5 w-5" />}
+          iconBg="bg-rose-500/15"
+          iconColor="text-rose-300"
+          sparkColor="#f43f5e"
+          seed={2}
+          onClick={() => setFeedFilter("high")}
+        />
+        <KPI
+          label="High Impact Mentions"
+          value="321"
+          delta="23%"
+          deltaTone="up"
+          icon={<Star className="h-5 w-5" />}
+          iconBg="bg-amber-500/15"
+          iconColor="text-amber-300"
+          sparkColor="#fbbf24"
+          seed={3}
+          onClick={() => setFeedFilter("impact")}
+        />
+        <KPI
+          label="Rising Mentions"
+          value="128"
+          delta="29%"
+          deltaTone="up"
+          icon={<TrendingUp className="h-5 w-5" />}
+          iconBg="bg-indigo-500/15"
+          iconColor="text-indigo-300"
+          sparkColor="#a78bfa"
+          seed={4}
+          onClick={() => setFeedFilter("rising")}
+        />
+        <KPI
+          label="Average AI Score"
+          value="63"
+          delta="6 pts"
+          deltaTone="up"
+          icon={<Target className="h-5 w-5" />}
+          iconBg="bg-emerald-500/15"
+          iconColor="text-emerald-300"
+          sparkColor="#34d399"
+          seed={5}
+        />
       </div>
 
       {/* Trend + Donut + Feed */}
@@ -868,10 +1289,10 @@ function Reputation() {
 
           <div className="mb-4 flex flex-wrap items-center gap-1.5">
             {[
-              { key: "all",    label: "All Mentions",    count: FEED.length,    danger: false },
-              { key: "high",   label: "Needs Attention", count: highRiskCount,  danger: true  },
-              { key: "impact", label: "High Impact",     count: impactCount,    danger: false },
-              { key: "rising", label: "Rising",          count: risingCount,    danger: false },
+              { key: "all", label: "All Mentions", count: FEED.length, danger: false },
+              { key: "high", label: "Needs Attention", count: highRiskCount, danger: true },
+              { key: "impact", label: "High Impact", count: impactCount, danger: false },
+              { key: "rising", label: "Rising", count: risingCount, danger: false },
             ].map((t) => {
               const active = feedFilter === t.key;
               return (
@@ -919,7 +1340,7 @@ function Reputation() {
             </button>
           </div>
 
-          <div className="flex-1 min-h-0 max-h-[640px] xl:max-h-none space-y-3 overflow-y-auto pr-1">
+          <div className="flex-1 min-h-0 max-h-[640px] space-y-3 overflow-y-auto pr-1">
             {visibleFeed.map((m) => (
               <MentionCard key={m.id} m={m} pinned={feedFilter === "all" && m.risk === "high"} />
             ))}
@@ -965,8 +1386,10 @@ function Reputation() {
                     <tr key={c.name} className="text-foreground/90 transition-colors hover:bg-white/[0.03]">
                       <td className="py-3">
                         <div className="flex items-center gap-2.5">
-                          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg"
-                            style={{ background: `${meta.color}22`, color: meta.color }}>
+                          <span
+                            className="grid h-7 w-7 shrink-0 place-items-center rounded-lg"
+                            style={{ background: `${meta.color}22`, color: meta.color }}
+                          >
                             <Icon className="h-3.5 w-3.5" />
                           </span>
                           <span className="font-medium">{c.name === "Twitter" ? "Twitter / X" : c.name}</span>
@@ -1000,7 +1423,13 @@ function Reputation() {
                     <th key={b} className="text-center font-medium">
                       <div>{b}</div>
                       <div className="text-[9px] text-muted-foreground/70">
-                        {b === "Morning" ? "6AM–12PM" : b === "Afternoon" ? "12PM–6PM" : b === "Evening" ? "6PM–12AM" : "12AM–6AM"}
+                        {b === "Morning"
+                          ? "6AM–12PM"
+                          : b === "Afternoon"
+                            ? "12PM–6PM"
+                            : b === "Evening"
+                              ? "6PM–12AM"
+                              : "12AM–6AM"}
                       </div>
                     </th>
                   ))}
@@ -1014,7 +1443,12 @@ function Reputation() {
                       const lvl = HEATMAP[c][b];
                       return (
                         <td key={b}>
-                          <div className={cn("grid place-items-center rounded-md border px-2 py-1.5 text-[10px] font-medium", RISK_COLOR[lvl])}>
+                          <div
+                            className={cn(
+                              "grid place-items-center rounded-md border px-2 py-1.5 text-[10px] font-medium",
+                              RISK_COLOR[lvl],
+                            )}
+                          >
                             {lvl}
                           </div>
                         </td>
@@ -1045,12 +1479,18 @@ function Reputation() {
               <Info className="h-3.5 w-3.5 text-muted-foreground" />
             </div>
             <div className="mt-2 flex items-center gap-3 text-[11px] text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-violet-400" /> This Period</span>
-              <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-3 bg-muted-foreground" /> Previous Period</span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-violet-400" /> This Period
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-0.5 w-3 bg-muted-foreground" /> Previous Period
+              </span>
             </div>
           </div>
           <Select defaultValue="Hourly">
-            <SelectTrigger className="h-8 w-28 text-xs"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 w-28 text-xs">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="Hourly">Hourly</SelectItem>
               <SelectItem value="Daily">Daily</SelectItem>
@@ -1070,10 +1510,30 @@ function Reputation() {
               <XAxis dataKey="hour" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip
-                contentStyle={{ background: "rgba(15,23,42,0.95)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 12 }}
+                contentStyle={{
+                  background: "rgba(15,23,42,0.95)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: 10,
+                  fontSize: 12,
+                }}
               />
-              <Area type="monotone" dataKey="previous" stroke="#64748b" strokeWidth={1} strokeDasharray="4 4" fill="transparent" name="Previous Period" />
-              <Area type="monotone" dataKey="current" stroke="#a78bfa" strokeWidth={2} fill="url(#velCur)" name="This Period" />
+              <Area
+                type="monotone"
+                dataKey="previous"
+                stroke="#64748b"
+                strokeWidth={1}
+                strokeDasharray="4 4"
+                fill="transparent"
+                name="Previous Period"
+              />
+              <Area
+                type="monotone"
+                dataKey="current"
+                stroke="#a78bfa"
+                strokeWidth={2}
+                fill="url(#velCur)"
+                name="This Period"
+              />
               <Legend wrapperStyle={{ display: "none" }} />
             </AreaChart>
           </ResponsiveContainer>
