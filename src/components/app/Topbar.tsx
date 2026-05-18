@@ -1,11 +1,14 @@
-import { Bell, Search, Sparkles, ChevronDown, AlertTriangle, LogOut } from "lucide-react";
+import { Bell, Search, Sparkles, ChevronDown, AlertTriangle, LogOut, Plug } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getBrandDna } from "@/lib/connections.functions";
 
 const SUGGESTIONS = [
   "Generate Q4 brand campaign brief",
@@ -25,6 +28,16 @@ export function Topbar() {
   const initials = displayName.slice(0, 2).toUpperCase();
   const subline = user ? user.email : "Demo workspace";
 
+  const fetchDna = useServerFn(getBrandDna);
+  const { data: dna } = useQuery({
+    queryKey: ["brand-dna"],
+    queryFn: () => fetchDna(),
+    enabled: !!user,
+    staleTime: 60_000,
+  });
+  const connectedCount = (dna?.sources ?? []).filter((s: any) => s.status === "connected").length;
+  const needsSetup = !!user && connectedCount < 2;
+
   return (
     <>
       <header className="sticky top-0 z-20 h-16 border-b border-white/5 bg-[#0a0d16]/70 backdrop-blur-xl">
@@ -42,6 +55,15 @@ export function Topbar() {
           </div>
 
           <div className="flex items-center gap-2">
+            {needsSetup && (
+              <Link
+                to="/dashboard/brand-dna-setup"
+                className="hidden md:inline-flex items-center gap-2 rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 h-10 text-xs font-medium text-amber-200 hover:bg-amber-500/15 transition"
+              >
+                <Plug className="h-3.5 w-3.5" />
+                Connect platforms ({connectedCount}/2)
+              </Link>
+            )}
             <button
               onClick={() => setOpen(true)}
               className="group relative inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 px-3.5 h-10 text-sm font-medium text-white glow-primary hover:scale-[1.02] transition"
