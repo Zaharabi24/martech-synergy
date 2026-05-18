@@ -1278,7 +1278,7 @@ function Reputation() {
         </div>
 
         {/* Mention Feed */}
-        <Card className="flex min-w-0 flex-col p-5 xl:col-span-6 xl:row-span-2 xl:h-full">
+        <Card className="flex min-w-0 flex-col p-5 xl:col-span-6 xl:row-span-2 xl:max-h-[760px] overflow-hidden">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h3 className="text-base font-semibold text-foreground">Mention Feed</h3>
