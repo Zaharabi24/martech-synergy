@@ -12,6 +12,7 @@ import appCss from "../styles.css?url";
 import { ZarvisChat } from "@/components/app/ZarvisChat";
 import { ThemeProvider } from "@/components/app/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/hooks/use-auth";
 
 function NotFoundComponent() {
   return (
@@ -116,11 +117,13 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <Outlet />
-        <ZarvisChat />
-        <Toaster richColors position="top-right" />
-      </ThemeProvider>
+      <AuthProvider>
+        <ThemeProvider>
+          <Outlet />
+          <ZarvisChat />
+          <Toaster richColors position="top-right" />
+        </ThemeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
