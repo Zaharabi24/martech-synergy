@@ -55,8 +55,16 @@ export function Topbar() {
           </div>
 
           <div className="flex items-center gap-2">
+            {needsSetup && (
+              <Link
+                to="/dashboard/brand-dna-setup"
+                className="hidden md:inline-flex items-center gap-2 rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 h-10 text-xs font-medium text-amber-200 hover:bg-amber-500/15 transition"
+              >
+                <Plug className="h-3.5 w-3.5" />
+                Connect platforms ({connectedCount}/2)
+              </Link>
+            )}
             <button
-              onClick={() => setOpen(true)}
               className="group relative inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 px-3.5 h-10 text-sm font-medium text-white glow-primary hover:scale-[1.02] transition"
             >
               <Sparkles className="h-4 w-4" />
