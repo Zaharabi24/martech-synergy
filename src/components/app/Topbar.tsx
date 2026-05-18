@@ -65,6 +65,7 @@ export function Topbar() {
               </Link>
             )}
             <button
+              onClick={() => setOpen(true)}
               className="group relative inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 px-3.5 h-10 text-sm font-medium text-white glow-primary hover:scale-[1.02] transition"
             >
               <Sparkles className="h-4 w-4" />
