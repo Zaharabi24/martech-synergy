@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Brain, Sparkles, Megaphone, Users, Contact, Star, Shield,
-  BarChart3, Layers, Atom, ChevronLeft, Zap, CreditCard, FileText, Plug
+  BarChart3, Layers, Atom, ChevronLeft, Zap, CreditCard, FileText, Plug, Globe
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { group: "Setup", items: [
     { to: "/dashboard/brand-dna-setup", label: "Brand DNA", icon: Plug, badge: "Start" },
+    { to: "/dashboard/website-analysis", label: "Website Analysis", icon: Globe },
   ]},
   { group: "AI Tools", items: [
     { to: "/dashboard/brand-guideline", label: "Brand Guideline Generator", icon: FileText, badge: "New" },
