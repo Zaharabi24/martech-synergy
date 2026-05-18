@@ -1,79 +1,122 @@
-# BrandSync AI — Backend Integration Plan
+# BrandSync AI — End-to-End Build Plan
 
-This is a very large scope (auth, DB schema, AI orchestration, analytics, PDF/PPT, demo mode, caching, RLS, etc.). To ship a credible buyer demo without breaking the existing frontend, I'll execute in **focused phases**. Each phase is independently shippable and demo-safe.
+Goal: transform the existing frontend into a real, integration-driven SaaS. No timeline pressure → I'll deliver in 7 phases, each independently demoable. Mock data on un-connected sections stays in place and gets replaced as each real integration lands (your choice).
 
 ---
 
-## Phase 1 — Foundation (Cloud + Auth + Theme)
-1. Enable **Lovable Cloud** (Supabase under the hood) — required for auth, DB, storage, edge logic.
-2. Wire the existing **Free Demo Registration** modal to real auth:
-   - Email/password signup + login
-   - Google OAuth (via Lovable broker)
-   - Session persistence, auto-login, toast feedback
-   - `emailRedirectTo` set so confirmation works
-3. Create `profiles` + `companies` + `onboarding_data` tables with RLS, auto-create profile trigger on signup.
-4. Dark/Light theme already exists in `ThemeProvider` — sync preference to `profiles.theme` once user is logged in (currently localStorage only).
+## Phase 1 — Brand DNA Onboarding + Connections Foundation
 
-## Phase 2 — Database Schema & RLS
-Tables (all RLS-enabled, scoped by `company_id` via `user_roles`):
-- `profiles`, `companies`, `company_members`, `user_roles` (app_role enum), `onboarding_data`
-- `brand_guideline_requests`, `generated_guidelines`, `uploaded_assets`
-- `mentions`, `mention_actions`, `activity_logs`
-- `traffic_analytics`, `traffic_sources`, `traffic_countries`, `keywords`
-- `ai_recommendations`, `demo_seed_flag`
-Indexed on `company_id`, `created_at`. `has_role()` security-definer function for role checks.
+**New route:** `/dashboard/brand-dna-setup` (2-step wizard)
+- Step 1 — Brand Identity: brand name, industry, employee size, location, website URL, brand goal, target audience → writes to `companies` + new `brand_identity` table.
+- Step 2 — Connect Platforms: 10 platform cards with proper statuses (Not Connected / Connecting / Connected / Syncing / Permission Expired / API Error), last-synced timestamp, Sync Now, Disconnect.
+- Gate: full dashboard locked until Website + 1 other platform connected. Locked sections show "Connection Required" CTAs that deep-link to the wizard.
 
-## Phase 3 — Brand Guideline Generator (AI + PDF)
-- New sidebar route `/dashboard/brand-guideline-generator` (full form per spec).
-- `createServerFn` `generateGuideline` — uses existing Lovable AI Gateway (`google/gemini-3-flash-preview`), streams structured JSON via existing `GuidelineSchema`.
-- PDF export: reuse `src/lib/brand-guideline-export.ts` (already exists) + jsPDF on the client.
-- PPT export: **mock workflow** (Gamma API not available without user-provided key) — generate a `.pptx` via `pptxgenjs` client-side using the same structured content. If user later adds a Gamma key, swap implementation behind the same server fn.
-- Logo upload → Supabase Storage bucket `brand-assets` with size/type validation.
-- Save every generation to `generated_guidelines` for history.
+**DB tables (migration):**
+`brand_identity`, `connected_sources` (platform, status, scopes, last_synced_at, error), `sync_logs`, `api_errors`. RLS scoped via `company_members`.
 
-## Phase 4 — Traffic Analyzer + Demo Mode
-- Seeded realistic data inserted on first login (demo flag per company).
-- Server fns: `getTrafficOverview`, `getTrafficSources`, `getTopCountries`, `getTopKeywords` with date-range filter.
-- Client uses TanStack Query with `staleTime` for instant chart rendering.
-- Date filter: Month / Last 2M / Last 3M / Custom range.
+**Sidebar:** add "Brand DNA" + "Brand Guideline Generator" entries. Topbar shows a "Connect platforms" pill when < 2 sources connected.
 
-## Phase 5 — Mention Feed Actions (keep UI unchanged)
-Wire existing buttons to server fns:
-- `replyWithAI` (streams AI response)
-- `markResolved`, `assignTask`, `fixIssue`, `exportReport`
-- Optimistic updates via React Query `onMutate`.
-- Activity logged to `activity_logs`.
+---
 
-## Phase 6 — AI Intelligence Layer
-- `getAIRecommendations(companyId)` — uses gateway with system prompt simulating CMO/strategist roles, cached in `ai_recommendations` table (24h TTL).
-- Surfaced on `/dashboard/intelligence`.
+## Phase 2 — Website Analysis (Firecrawl, zero OAuth)
 
-## Phase 7 — Polish
-- Skeleton loaders on all data routes
-- Error boundaries per route
-- Rate-limit guard on AI server fns (per-user, in-memory token bucket)
-- Final pass: lazy routes, image optimization check, query memoization
+- Link Firecrawl connector via `standard_connectors--connect`.
+- Server fn `analyzeWebsite(companyId)` → Firecrawl `scrape` with `formats: ['markdown','metadata','links','branding','summary']` + a follow-up structured extract for SEO basics, headings, brand messaging consistency.
+- Writes to `website_analysis` table; surfaces on a new "Website" card on the Intelligence dashboard.
+- "Sync now" button on the Website card.
+
+---
+
+## Phase 3 — Google Search Console (Lovable connector, zero OAuth setup)
+
+- Link `google_search_console` connector. The site-verification flow is handled via the gateway (META tag injected into `__root.tsx` head dynamically per company).
+- Server fns: `verifyAndAddSite`, `getTopKeywords`, `getSearchPerformance` (impressions / clicks / CTR / position).
+- Replaces the SEO section mock data once the connection exists.
+
+---
+
+## Phase 4 — Google Analytics 4 (user-OAuth, per-user tokens)
+
+This is the first integration that requires per-end-user OAuth (not a workspace connector). You'll need to register a Google Cloud OAuth app once; I'll wire the full flow.
+
+- New tables: `oauth_tokens` (encrypted refresh tokens), `traffic_metrics`.
+- Routes: `/api/public/oauth/ga4/callback` (verifies state, exchanges code, stores tokens encrypted with pgcrypto + service-role key).
+- Server fns: `listGA4Properties`, `selectGA4Property(propertyId)`, `getTrafficOverview/Sources/Countries` calling the GA4 Data API with auto-refresh.
+- Replaces the Traffic Analyzer mock with real metrics + date filters (Monthly / Last 2m / Last 3m / Custom).
+
+**You provide:** `GOOGLE_OAUTH_CLIENT_ID` + `GOOGLE_OAUTH_CLIENT_SECRET`. I'll request them via the secrets tool when this phase starts.
+
+---
+
+## Phase 5 — Brand Health Score + AI Recommendation Engine
+
+- `brand_health_scores` table with components (website 20 / social 20 / engagement 20 / traffic 15 / SEO 10 / sentiment 10 / consistency 5). Only weights for which we have data are normalized; otherwise the card shows "Connect more platforms to improve accuracy" with progress to next threshold.
+- Server fn `generateRecommendations(companyId)` using Lovable AI (`google/gemini-3-flash-preview`, structured output via `Output.object`) consuming whatever real data exists — never invents metrics.
+- Cached 24h in `ai_recommendations` with manual "Regenerate" button.
+
+---
+
+## Phase 6 — Brand Guideline Generator (PDF + PPT)
+
+- New sidebar route `/dashboard/brand-guideline-generator` (the existing `brand-guideline.functions.ts` already exists — extending it).
+- Auto-prefills from Brand DNA + Website analysis. AI generates structured guideline JSON.
+- PDF export: reuse existing `src/lib/brand-guideline-export.ts` + jsPDF.
+- PPT export: `pptxgenjs` client-side — generates a real downloadable `.pptx` with brand colors, typography preview, palette swatches, voice do/don'ts, messaging pillars. No external API needed.
+
+---
+
+## Phase 7 — Deferred social platforms + sync engine + polish
+
+Implemented behind feature flags so each can be turned on as you complete the developer-app registration:
+- Facebook Page + Instagram Business (Meta Graph API — requires Meta App + Business Verification, 1-3 weeks on Meta's side)
+- LinkedIn Company, YouTube Data API, TikTok Business, Google Business Profile, X/Twitter
+
+Plus the cross-cutting infrastructure:
+- **Sentiment analysis** — Lovable AI over reviews/comments/mentions; structured output to `sentiment_reports`.
+- **Sync engine** — `pg_cron` calling `/api/public/cron/sync-all` hourly; per-source retry with exponential backoff; sync logs surfaced in Settings.
+- **Performance** — TanStack Query staleTime per resource, route-level lazy loading for chart bundles, skeleton loaders everywhere, optimistic updates for Mention Feed actions.
+- **Responsive sweep** — verified breakpoints (desktop 4-col / laptop 3 / tablet 2 / mobile 1), no overflow, horizontal scroll on data tables, collapsing sidebar on `< md`.
+- **Security pass** — `has_role()` security-definer function, encrypted token storage, server-only API calls, input validation with Zod on every server fn, rate limiting on AI endpoints (in-memory per-user token bucket).
 
 ---
 
 ## Technical Details
 
-**Stack already in place** — TanStack Start v1, Lovable AI Gateway via `@/lib/ai-gateway`, shadcn/ui, Recharts, framer-motion, jspdf, html2canvas. I will **add**: `pptxgenjs` for PPT export. No other deps.
+**Stack confirmation:** TanStack Start v1 + `createServerFn` for all backend (no Supabase Edge Functions). Lovable Cloud (Supabase) + RLS. Lovable AI Gateway for all LLM calls. TanStack Query for caching. Firecrawl + Google Search Console via Lovable connectors. GA4 + social platforms via per-user OAuth with tokens encrypted at rest.
 
-**Auth model** — Supabase Auth via Lovable Cloud. Google OAuth uses the Lovable broker (`lovable.auth.signInWithOAuth("google", ...)`) + `supabase--configure_social_auth({providers:["google"]})`.
+**Folder structure:**
+```text
+src/
+  lib/
+    integrations/
+      firecrawl.functions.ts
+      gsc.functions.ts
+      ga4.functions.ts
+      meta.functions.ts        (phase 7)
+      ...
+    brand-health.functions.ts
+    recommendations.functions.ts
+    brand-guideline.functions.ts (exists, extended)
+    brand-guideline-export.ts    (PDF, exists)
+    brand-guideline-pptx.ts      (PPT, new)
+  routes/
+    dashboard.brand-dna-setup.tsx
+    dashboard.brand-guideline-generator.tsx
+    api/public/oauth/ga4/callback.ts
+    api/public/cron/sync-all.ts
+  components/app/
+    ConnectionCard.tsx
+    ConnectionRequired.tsx
+```
 
-**Server boundary** — all sensitive logic in `*.functions.ts` using `createServerFn` + `requireSupabaseAuth`. RLS is the backstop. No Supabase Edge Functions.
-
-**Demo mode** — single boolean on `companies.demo_mode`. On signup, seed ~90 days of realistic analytics + 20 sample mentions + 3 AI recommendations so dashboards never look empty.
-
-**PPT note** — Real Gamma AI integration requires a Gamma API key the user does not have. I'll build the same UX with `pptxgenjs` (client-side .pptx generation) so the button works end-to-end in the demo; swapping in Gamma later is a 1-file change.
+**Secrets I'll request as phases land:**
+- Phase 2: Firecrawl connector (one click, no key)
+- Phase 3: Google Search Console connector (one click)
+- Phase 4: `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`
+- Phase 7: per-platform credentials as you register each app
 
 ---
 
-## What I need from you before starting
+## Starting now: Phase 1 (Brand DNA + Connections Foundation)
 
-1. **Confirm Lovable Cloud enable** — this provisions the backend and adds ~30s to the first save. OK to proceed?
-2. **Google OAuth** — enable now, or email/password only for first cut?
-3. **Phase order** — proceed Phase 1 → 7 in sequence (recommended), or prioritize a specific phase first (e.g. Brand Guideline Generator for an imminent demo)?
-
-Reply with answers (or just "go" for the default: enable Cloud, enable Google, run phases in order) and I'll start with Phase 1 immediately.
+Reply **"go phase 1"** and I'll ship it. Or pick a different starting phase (e.g. **"start with phase 6"** if you want the Brand Guideline Generator live first for the demo).

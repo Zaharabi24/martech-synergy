@@ -14,6 +14,85 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_errors: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          endpoint: string | null
+          error_message: string | null
+          id: string
+          payload: Json | null
+          platform: Database["public"]["Enums"]["platform_kind"] | null
+          status_code: number | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          endpoint?: string | null
+          error_message?: string | null
+          id?: string
+          payload?: Json | null
+          platform?: Database["public"]["Enums"]["platform_kind"] | null
+          status_code?: number | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          endpoint?: string | null
+          error_message?: string | null
+          id?: string
+          payload?: Json | null
+          platform?: Database["public"]["Enums"]["platform_kind"] | null
+          status_code?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_errors_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brand_identity: {
+        Row: {
+          brand_goal: string | null
+          business_location: string | null
+          company_id: string
+          created_at: string
+          id: string
+          target_audience: string | null
+          updated_at: string
+        }
+        Insert: {
+          brand_goal?: string | null
+          business_location?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          target_audience?: string | null
+          updated_at?: string
+        }
+        Update: {
+          brand_goal?: string | null
+          business_location?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          target_audience?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_identity_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           created_at: string
@@ -76,6 +155,59 @@ export type Database = {
           },
         ]
       }
+      connected_sources: {
+        Row: {
+          company_id: string
+          created_at: string
+          external_account_id: string | null
+          external_account_label: string | null
+          id: string
+          last_error: string | null
+          last_synced_at: string | null
+          metadata: Json
+          platform: Database["public"]["Enums"]["platform_kind"]
+          scopes: string[] | null
+          status: Database["public"]["Enums"]["connection_status"]
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          external_account_id?: string | null
+          external_account_label?: string | null
+          id?: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          metadata?: Json
+          platform: Database["public"]["Enums"]["platform_kind"]
+          scopes?: string[] | null
+          status?: Database["public"]["Enums"]["connection_status"]
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          external_account_id?: string | null
+          external_account_label?: string | null
+          id?: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          metadata?: Json
+          platform?: Database["public"]["Enums"]["platform_kind"]
+          scopes?: string[] | null
+          status?: Database["public"]["Enums"]["connection_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connected_sources_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -106,6 +238,57 @@ export type Database = {
         }
         Relationships: []
       }
+      sync_logs: {
+        Row: {
+          company_id: string
+          duration_ms: number | null
+          finished_at: string | null
+          id: string
+          message: string | null
+          platform: Database["public"]["Enums"]["platform_kind"]
+          source_id: string | null
+          started_at: string
+          status: string
+        }
+        Insert: {
+          company_id: string
+          duration_ms?: number | null
+          finished_at?: string | null
+          id?: string
+          message?: string | null
+          platform: Database["public"]["Enums"]["platform_kind"]
+          source_id?: string | null
+          started_at?: string
+          status: string
+        }
+        Update: {
+          company_id?: string
+          duration_ms?: number | null
+          finished_at?: string | null
+          id?: string
+          message?: string | null
+          platform?: Database["public"]["Enums"]["platform_kind"]
+          source_id?: string | null
+          started_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sync_logs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "connected_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -114,7 +297,24 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      connection_status:
+        | "not_connected"
+        | "connecting"
+        | "connected"
+        | "syncing"
+        | "permission_expired"
+        | "api_error"
+      platform_kind:
+        | "website"
+        | "google_analytics"
+        | "google_search_console"
+        | "facebook"
+        | "instagram"
+        | "tiktok"
+        | "linkedin"
+        | "youtube"
+        | "google_business"
+        | "twitter"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -241,6 +441,27 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      connection_status: [
+        "not_connected",
+        "connecting",
+        "connected",
+        "syncing",
+        "permission_expired",
+        "api_error",
+      ],
+      platform_kind: [
+        "website",
+        "google_analytics",
+        "google_search_console",
+        "facebook",
+        "instagram",
+        "tiktok",
+        "linkedin",
+        "youtube",
+        "google_business",
+        "twitter",
+      ],
+    },
   },
 } as const
