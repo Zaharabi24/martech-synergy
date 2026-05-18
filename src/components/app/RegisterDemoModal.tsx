@@ -6,8 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Sparkles, CheckCircle2 } from "lucide-react";
+import { Sparkles, CheckCircle2, Loader2 } from "lucide-react";
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 
 const INDUSTRIES = [
   "Technology / SaaS", "E-commerce / D2C", "Retail", "Fashion & Beauty", "Food & Beverage",
@@ -17,20 +19,18 @@ const INDUSTRIES = [
 
 const EMPLOYEE_SIZES = ["1–10", "11–50", "51–200", "201–500", "501–1,000", "1,000+"];
 
-const googleSchema = z.object({
-  brandName: z.string().trim().min(1, "Brand name is required").max(120),
-  industry: z.string().min(1, "Choose an industry"),
-  employeeSize: z.string().min(1, "Choose company size"),
-  websiteUrl: z.string().trim().max(255).optional().or(z.literal("")),
-});
-
 const createSchema = z.object({
   brandName: z.string().trim().min(1, "Brand name is required").max(120),
-  contact: z.string().trim().min(3, "Email or phone is required").max(150),
+  email: z.string().trim().email("Enter a valid email").max(150),
   industry: z.string().min(1, "Choose an industry"),
   employeeSize: z.string().min(1, "Choose company size"),
   websiteUrl: z.string().trim().max(255).optional().or(z.literal("")),
   password: z.string().min(8, "Min 8 characters").max(72),
+});
+
+const loginSchema = z.object({
+  email: z.string().trim().email("Enter a valid email"),
+  password: z.string().min(1, "Password is required"),
 });
 
 function GoogleIcon({ className = "h-4 w-4" }) {
@@ -41,15 +41,37 @@ function GoogleIcon({ className = "h-4 w-4" }) {
   );
 }
 
-type Mode = "choose" | "google" | "create" | "success";
+type Mode = "choose" | "create" | "login" | "success";
 
 export function RegisterDemoModal({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const [mode, setMode] = useState<Mode>("choose");
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const reset = () => setMode("choose");
   const handleOpenChange = (v: boolean) => {
     if (!v) setTimeout(reset, 200);
     onOpenChange(v);
+  };
+
+  const handleGoogle = async () => {
+    setGoogleLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin + "/dashboard/intelligence",
+      });
+      if (result.error) {
+        toast.error(result.error.message ?? "Google sign-in failed");
+        setGoogleLoading(false);
+        return;
+      }
+      if (result.redirected) return; // browser will navigate
+      // Tokens received — session is set
+      toast.success("Welcome to BrandSync AI!");
+      window.location.href = "/dashboard/intelligence";
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Google sign-in failed");
+      setGoogleLoading(false);
+    }
   };
 
   return (
@@ -65,39 +87,49 @@ export function RegisterDemoModal({ open, onOpenChange }: { open: boolean; onOpe
                 Get instant access to BrandSync AI. No credit card required.
               </DialogDescription>
             </DialogHeader>
-            <Tabs defaultValue="google" className="mt-2">
+            <Tabs defaultValue="signup" className="mt-2">
               <TabsList className="grid grid-cols-2 w-full">
-                <TabsTrigger value="google">Continue with Google</TabsTrigger>
-                <TabsTrigger value="create">Create account</TabsTrigger>
+                <TabsTrigger value="signup">Create account</TabsTrigger>
+                <TabsTrigger value="login">Log in</TabsTrigger>
               </TabsList>
-              <TabsContent value="google" className="mt-4">
+              <TabsContent value="signup" className="mt-4 space-y-3">
                 <button
-                  onClick={() => setMode("google")}
-                  className="w-full inline-flex items-center justify-center gap-3 rounded-lg bg-white text-black font-medium h-11 hover:bg-white/90 transition"
+                  onClick={handleGoogle}
+                  disabled={googleLoading}
+                  className="w-full inline-flex items-center justify-center gap-3 rounded-lg bg-white text-black font-medium h-11 hover:bg-white/90 transition disabled:opacity-60"
                 >
-                  <GoogleIcon /> Continue with Google
+                  {googleLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
+                  Continue with Google
                 </button>
-                <p className="mt-3 text-xs text-muted-foreground text-center">
-                  We'll ask a few quick questions about your brand to personalize your dashboard.
-                </p>
-              </TabsContent>
-              <TabsContent value="create" className="mt-4">
+                <div className="relative my-1 text-center text-[10px] uppercase tracking-widest text-muted-foreground">
+                  <span className="bg-transparent px-2">or</span>
+                </div>
                 <Button onClick={() => setMode("create")} className="w-full h-11 bg-gradient-to-r from-indigo-500 to-purple-600">
-                  Create your account
+                  Create with email
                 </Button>
-                <p className="mt-3 text-xs text-muted-foreground text-center">
-                  Use email or phone — your choice.
-                </p>
+              </TabsContent>
+              <TabsContent value="login" className="mt-4 space-y-3">
+                <button
+                  onClick={handleGoogle}
+                  disabled={googleLoading}
+                  className="w-full inline-flex items-center justify-center gap-3 rounded-lg bg-white text-black font-medium h-11 hover:bg-white/90 transition disabled:opacity-60"
+                >
+                  {googleLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
+                  Continue with Google
+                </button>
+                <Button onClick={() => setMode("login")} variant="outline" className="w-full h-11">
+                  Log in with email
+                </Button>
               </TabsContent>
             </Tabs>
           </>
         )}
 
-        {mode === "google" && (
-          <GoogleForm onBack={() => setMode("choose")} onDone={() => setMode("success")} />
-        )}
         {mode === "create" && (
           <CreateForm onBack={() => setMode("choose")} onDone={() => setMode("success")} />
+        )}
+        {mode === "login" && (
+          <LoginForm onBack={() => setMode("choose")} onDone={() => setMode("success")} />
         )}
         {mode === "success" && <SuccessPanel onClose={() => handleOpenChange(false)} />}
       </DialogContent>
@@ -110,77 +142,8 @@ function FieldError({ msg }: { msg?: string }) {
   return <p className="text-xs text-rose-400 mt-1">{msg}</p>;
 }
 
-function GoogleForm({ onBack, onDone }: { onBack: () => void; onDone: () => void }) {
-  const [values, setValues] = useState({ brandName: "", industry: "", employeeSize: "", websiteUrl: "" });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(false);
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const parsed = googleSchema.safeParse(values);
-    if (!parsed.success) {
-      const errs: Record<string, string> = {};
-      parsed.error.issues.forEach((i) => { errs[i.path[0] as string] = i.message; });
-      setErrors(errs);
-      return;
-    }
-    setErrors({});
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 700));
-    setLoading(false);
-    toast.success("Welcome to BrandSync AI!");
-    onDone();
-  };
-
-  return (
-    <>
-      <DialogHeader>
-        <DialogTitle className="text-lg flex items-center gap-2">
-          <GoogleIcon /> Tell us about your brand
-        </DialogTitle>
-        <DialogDescription>Signed in with Google. A few details and you're in.</DialogDescription>
-      </DialogHeader>
-      <form onSubmit={submit} className="mt-2 space-y-4">
-        <div>
-          <Label>Brand or Company Name</Label>
-          <Input value={values.brandName} onChange={(e) => setValues({ ...values, brandName: e.target.value })} placeholder="Acme Corporation" />
-          <FieldError msg={errors.brandName} />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <Label>Industry</Label>
-            <Select value={values.industry} onValueChange={(v) => setValues({ ...values, industry: v })}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-              <SelectContent>{INDUSTRIES.map((i) => <SelectItem key={i} value={i}>{i}</SelectItem>)}</SelectContent>
-            </Select>
-            <FieldError msg={errors.industry} />
-          </div>
-          <div>
-            <Label>Employee Size</Label>
-            <Select value={values.employeeSize} onValueChange={(v) => setValues({ ...values, employeeSize: v })}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-              <SelectContent>{EMPLOYEE_SIZES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-            </Select>
-            <FieldError msg={errors.employeeSize} />
-          </div>
-        </div>
-        <div>
-          <Label>Website URL <span className="text-muted-foreground font-normal">(Optional)</span></Label>
-          <Input value={values.websiteUrl} onChange={(e) => setValues({ ...values, websiteUrl: e.target.value })} placeholder="https://www.acmecorp.com" />
-        </div>
-        <div className="flex gap-2 pt-1">
-          <Button type="button" variant="ghost" onClick={onBack}>Back</Button>
-          <Button type="submit" disabled={loading} className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600">
-            {loading ? "Setting up..." : "Launch my dashboard"}
-          </Button>
-        </div>
-      </form>
-    </>
-  );
-}
-
 function CreateForm({ onBack, onDone }: { onBack: () => void; onDone: () => void }) {
-  const [values, setValues] = useState({ brandName: "", contact: "", industry: "", employeeSize: "", websiteUrl: "", password: "" });
+  const [values, setValues] = useState({ brandName: "", email: "", industry: "", employeeSize: "", websiteUrl: "", password: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
@@ -195,8 +158,25 @@ function CreateForm({ onBack, onDone }: { onBack: () => void; onDone: () => void
     }
     setErrors({});
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
+    const { error } = await supabase.auth.signUp({
+      email: parsed.data.email,
+      password: parsed.data.password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/dashboard/intelligence`,
+        data: {
+          brand_name: parsed.data.brandName,
+          industry: parsed.data.industry,
+          employee_size: parsed.data.employeeSize,
+          website_url: parsed.data.websiteUrl || null,
+          full_name: parsed.data.brandName,
+        },
+      },
+    });
     setLoading(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Account created! Welcome aboard.");
     onDone();
   };
@@ -214,9 +194,9 @@ function CreateForm({ onBack, onDone }: { onBack: () => void; onDone: () => void
           <FieldError msg={errors.brandName} />
         </div>
         <div>
-          <Label>Email or Phone Number</Label>
-          <Input value={values.contact} onChange={(e) => setValues({ ...values, contact: e.target.value })} placeholder="you@brand.com or +1 555 0100" />
-          <FieldError msg={errors.contact} />
+          <Label>Email</Label>
+          <Input type="email" value={values.email} onChange={(e) => setValues({ ...values, email: e.target.value })} placeholder="you@brand.com" />
+          <FieldError msg={errors.email} />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -248,7 +228,61 @@ function CreateForm({ onBack, onDone }: { onBack: () => void; onDone: () => void
         <div className="flex gap-2 pt-1">
           <Button type="button" variant="ghost" onClick={onBack}>Back</Button>
           <Button type="submit" disabled={loading} className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600">
-            {loading ? "Creating account..." : "Create account"}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create account"}
+          </Button>
+        </div>
+      </form>
+    </>
+  );
+}
+
+function LoginForm({ onBack, onDone }: { onBack: () => void; onDone: () => void }) {
+  const [values, setValues] = useState({ email: "", password: "" });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const parsed = loginSchema.safeParse(values);
+    if (!parsed.success) {
+      const errs: Record<string, string> = {};
+      parsed.error.issues.forEach((i) => { errs[i.path[0] as string] = i.message; });
+      setErrors(errs);
+      return;
+    }
+    setErrors({});
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email: parsed.data.email, password: parsed.data.password });
+    setLoading(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Welcome back!");
+    onDone();
+  };
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle className="text-lg">Log in</DialogTitle>
+        <DialogDescription>Access your BrandSync workspace.</DialogDescription>
+      </DialogHeader>
+      <form onSubmit={submit} className="mt-2 space-y-4">
+        <div>
+          <Label>Email</Label>
+          <Input type="email" value={values.email} onChange={(e) => setValues({ ...values, email: e.target.value })} />
+          <FieldError msg={errors.email} />
+        </div>
+        <div>
+          <Label>Password</Label>
+          <Input type="password" value={values.password} onChange={(e) => setValues({ ...values, password: e.target.value })} />
+          <FieldError msg={errors.password} />
+        </div>
+        <div className="flex gap-2 pt-1">
+          <Button type="button" variant="ghost" onClick={onBack}>Back</Button>
+          <Button type="submit" disabled={loading} className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600">
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Log in"}
           </Button>
         </div>
       </form>
@@ -264,7 +298,7 @@ function SuccessPanel({ onClose }: { onClose: () => void }) {
       </div>
       <DialogTitle className="text-xl">You're all set!</DialogTitle>
       <DialogDescription className="mt-2">
-        Your free demo workspace is ready. Mr. Zarvis will guide you from here.
+        Your workspace is ready. Mr. Zarvis will guide you from here.
       </DialogDescription>
       <div className="mt-5 flex flex-col gap-2">
         <a href="/dashboard/intelligence" className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 h-11 font-medium">
