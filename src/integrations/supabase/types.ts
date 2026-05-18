@@ -289,6 +289,66 @@ export type Database = {
           },
         ]
       }
+      website_analysis: {
+        Row: {
+          analyzed_at: string | null
+          branding: Json | null
+          company_id: string
+          created_at: string
+          description: string | null
+          error: string | null
+          id: string
+          links: Json | null
+          markdown: string | null
+          metadata: Json | null
+          screenshot_url: string | null
+          source_id: string | null
+          status: string
+          summary: string | null
+          title: string | null
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          analyzed_at?: string | null
+          branding?: Json | null
+          company_id: string
+          created_at?: string
+          description?: string | null
+          error?: string | null
+          id?: string
+          links?: Json | null
+          markdown?: string | null
+          metadata?: Json | null
+          screenshot_url?: string | null
+          source_id?: string | null
+          status?: string
+          summary?: string | null
+          title?: string | null
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          analyzed_at?: string | null
+          branding?: Json | null
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          error?: string | null
+          id?: string
+          links?: Json | null
+          markdown?: string | null
+          metadata?: Json | null
+          screenshot_url?: string | null
+          source_id?: string | null
+          status?: string
+          summary?: string | null
+          title?: string | null
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
