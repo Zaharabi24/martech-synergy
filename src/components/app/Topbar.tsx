@@ -1,11 +1,14 @@
-import { Bell, Search, Sparkles, ChevronDown, AlertTriangle, LogOut } from "lucide-react";
+import { Bell, Search, Sparkles, ChevronDown, AlertTriangle, LogOut, Plug } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getBrandDna } from "@/lib/connections.functions";
 
 const SUGGESTIONS = [
   "Generate Q4 brand campaign brief",
@@ -24,6 +27,16 @@ export function Topbar() {
   const displayName = (user?.user_metadata?.full_name as string) || (user?.user_metadata?.brand_name as string) || user?.email?.split("@")[0] || "Guest";
   const initials = displayName.slice(0, 2).toUpperCase();
   const subline = user ? user.email : "Demo workspace";
+
+  const fetchDna = useServerFn(getBrandDna);
+  const { data: dna } = useQuery({
+    queryKey: ["brand-dna"],
+    queryFn: () => fetchDna(),
+    enabled: !!user,
+    staleTime: 60_000,
+  });
+  const connectedCount = (dna?.sources ?? []).filter((s: any) => s.status === "connected").length;
+  const needsSetup = !!user && connectedCount < 2;
 
   return (
     <>
