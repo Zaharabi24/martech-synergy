@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import {
   getBrandDna, saveBrandIdentity, connectWebsite, disconnectSource,
 } from "@/lib/connections.functions";
+import { analyzeWebsite } from "@/lib/website-analysis.functions";
 
 export const Route = createFileRoute("/dashboard/brand-dna-setup")({
   component: BrandDnaSetupPage,
@@ -158,6 +159,17 @@ function BrandDnaSetupPage() {
       toast.success("Disconnected");
       qc.invalidateQueries({ queryKey: ["brand-dna"] });
     },
+  });
+
+  const runAnalysis = useServerFn(analyzeWebsite);
+  const analyzeMutation = useMutation({
+    mutationFn: () => runAnalysis({ data: {} }),
+    onSuccess: () => {
+      toast.success("Website analyzed");
+      qc.invalidateQueries({ queryKey: ["brand-dna"] });
+      qc.invalidateQueries({ queryKey: ["website-analysis"] });
+    },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Analysis failed"),
   });
 
   return (
@@ -300,17 +312,34 @@ function BrandDnaSetupPage() {
                       {!isAvailable && <div className="text-amber-300/80">{PHASE_COPY[p.phase]}</div>}
                     </div>
 
-                    <div className="mt-4 flex items-center gap-2">
+                    <div className="mt-4 flex items-center gap-2 flex-wrap">
                       {isConnected ? (
                         <>
-                          <Button variant="outline" size="sm" disabled className="text-[11px]">
-                            Sync now
-                          </Button>
+                          {p.id === "website" ? (
+                            <Button
+                              variant="outline" size="sm"
+                              onClick={() => analyzeMutation.mutate()}
+                              disabled={analyzeMutation.isPending}
+                              className="text-[11px] h-8"
+                            >
+                              {analyzeMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : null}
+                              {analyzeMutation.isPending ? "Analyzing…" : "Run analysis"}
+                            </Button>
+                          ) : (
+                            <Button variant="outline" size="sm" disabled className="text-[11px] h-8">
+                              Sync now
+                            </Button>
+                          )}
+                          {p.id === "website" && (
+                            <Link to="/dashboard/website-analysis" className="text-[11px] text-indigo-300 hover:text-indigo-200 underline-offset-2 hover:underline">
+                              View report
+                            </Link>
+                          )}
                           <Button
                             variant="ghost" size="sm"
                             onClick={() => disconnectMutation.mutate(p.id)}
                             disabled={disconnectMutation.isPending}
-                            className="text-[11px] text-muted-foreground hover:text-rose-300"
+                            className="text-[11px] text-muted-foreground hover:text-rose-300 ml-auto"
                           >
                             Disconnect
                           </Button>
