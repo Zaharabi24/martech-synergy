@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardWebsiteAnalysisRouteImport } from './routes/dashboard.website-analysis'
 import { Route as DashboardSimulationRouteImport } from './routes/dashboard.simulation'
 import { Route as DashboardReputationRouteImport } from './routes/dashboard.reputation'
 import { Route as DashboardIntelligenceRouteImport } from './routes/dashboard.intelligence'
@@ -36,6 +37,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardWebsiteAnalysisRoute =
+  DashboardWebsiteAnalysisRouteImport.update({
+    id: '/website-analysis',
+    path: '/website-analysis',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardSimulationRoute = DashboardSimulationRouteImport.update({
   id: '/simulation',
   path: '/simulation',
@@ -124,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/intelligence': typeof DashboardIntelligenceRoute
   '/dashboard/reputation': typeof DashboardReputationRoute
   '/dashboard/simulation': typeof DashboardSimulationRoute
+  '/dashboard/website-analysis': typeof DashboardWebsiteAnalysisRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -142,6 +150,7 @@ export interface FileRoutesByTo {
   '/dashboard/intelligence': typeof DashboardIntelligenceRoute
   '/dashboard/reputation': typeof DashboardReputationRoute
   '/dashboard/simulation': typeof DashboardSimulationRoute
+  '/dashboard/website-analysis': typeof DashboardWebsiteAnalysisRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -161,6 +170,7 @@ export interface FileRoutesById {
   '/dashboard/intelligence': typeof DashboardIntelligenceRoute
   '/dashboard/reputation': typeof DashboardReputationRoute
   '/dashboard/simulation': typeof DashboardSimulationRoute
+  '/dashboard/website-analysis': typeof DashboardWebsiteAnalysisRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -181,6 +191,7 @@ export interface FileRouteTypes {
     | '/dashboard/intelligence'
     | '/dashboard/reputation'
     | '/dashboard/simulation'
+    | '/dashboard/website-analysis'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -199,6 +210,7 @@ export interface FileRouteTypes {
     | '/dashboard/intelligence'
     | '/dashboard/reputation'
     | '/dashboard/simulation'
+    | '/dashboard/website-analysis'
   id:
     | '__root__'
     | '/'
@@ -217,6 +229,7 @@ export interface FileRouteTypes {
     | '/dashboard/intelligence'
     | '/dashboard/reputation'
     | '/dashboard/simulation'
+    | '/dashboard/website-analysis'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -240,6 +253,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/website-analysis': {
+      id: '/dashboard/website-analysis'
+      path: '/website-analysis'
+      fullPath: '/dashboard/website-analysis'
+      preLoaderRoute: typeof DashboardWebsiteAnalysisRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/dashboard/simulation': {
       id: '/dashboard/simulation'
@@ -356,6 +376,7 @@ interface DashboardRouteChildren {
   DashboardIntelligenceRoute: typeof DashboardIntelligenceRoute
   DashboardReputationRoute: typeof DashboardReputationRoute
   DashboardSimulationRoute: typeof DashboardSimulationRoute
+  DashboardWebsiteAnalysisRoute: typeof DashboardWebsiteAnalysisRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
@@ -372,6 +393,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardIntelligenceRoute: DashboardIntelligenceRoute,
   DashboardReputationRoute: DashboardReputationRoute,
   DashboardSimulationRoute: DashboardSimulationRoute,
+  DashboardWebsiteAnalysisRoute: DashboardWebsiteAnalysisRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
