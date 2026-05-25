@@ -5,7 +5,7 @@ import {
   Sparkles, Image as ImageIcon, Wand2, Shirt, Box, Camera,
   FileText, MessageSquare, Hash, Tag, Youtube, Film,
   ChevronRight, Copy, Download, Send, RefreshCw, Loader2,
-  Upload, Plus, X, Palette, History, BookOpen, Share2, Star,
+  Upload, X, History, BookOpen, Share2, Star,
 } from "lucide-react";
 import { PageHeader, GlassCard, Pill } from "@/components/app/ui";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
